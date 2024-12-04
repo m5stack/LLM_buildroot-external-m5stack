@@ -1,0 +1,31 @@
+# Release notes
+
+## openstlinux-6.1-buildroot-2023.02.10-mp1-v23.11.15
+
+Changes in this release:
+
+- Based on Buildroot 2023.02.10
+
+- Based on last revision on the BSP components of ST, no change in major
+  version.
+
+- Addition of starter package for easy accessibility of prebuilt images.
+
+- Add support for OTA with RAUC tool. The OTA configuration is using two
+  rootfs partition containing the read only root file system and an
+  additional data read write partition. The boot switch is managed by
+  U-boot with custom environment.
+
+## openstlinux-6.1-buildroot-2023.02-mp1-v23.06.21
+
+Changes in this release:
+
+- Based on Buildroot 2023.02.2
+
+- Based on the BSP components of ST's 5.0 BSP: Linux 6.1, U-Boot
+  2022.10, TF-A 2.8, OP-TEE 3.19, gcnano-binaries 6.4.13
+
+- Addition of `wireless-regdb` in the demo images for WiFi operation
+
+- Fix of a kernel issue that prevented the proper auto-loading of the
+  audio codec driver

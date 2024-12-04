@@ -1,0 +1,3 @@
+source "$BR2_EXTERNAL_M5STACK_PATH/toolchain/toolchain-external-arm-aarch64-9-2/Config.in.options"
+source "$BR2_EXTERNAL_M5STACK_PATH/package/m4projects/Config.in"
+source "$BR2_EXTERNAL_M5STACK_PATH/package/tinyalsa_custom/Config.in"

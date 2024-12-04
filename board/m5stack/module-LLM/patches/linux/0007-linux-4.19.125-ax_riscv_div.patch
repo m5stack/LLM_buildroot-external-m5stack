@@ -1,0 +1,11 @@
+--- a/drivers/soc/axera/riscv/ax_riscv_drv.c	2024-12-04 16:33:58.756780115 +0800
++++ b/drivers/soc/axera/riscv/ax_riscv_drv.c	2024-12-04 16:33:54.944729182 +0800
+@@ -11,7 +11,7 @@
+ #include "ax_riscv_drv.h"
+ #include "ax_riscv_debug.h"
+ #include "ax_riscv_utils.h"
+-#include "osal_ax.h"
++extern s32 ax_os_release_reserved_mem(unsigned long phy_start, size_t size, const char *s);
+ #include <asm/io.h>
+ #include <linux/module.h>
+ #include <linux/init.h>

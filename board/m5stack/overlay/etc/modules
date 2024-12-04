@@ -1,0 +1,18 @@
+# /etc/modules: kernel modules to load at boot time.
+#
+# This file contains the names of kernel modules that should be loaded
+# at boot time, one per line. Lines beginning with "#" are ignored.
+soundcore
+snd
+snd_timer
+snd_pcm
+snd_pcm_dmaengine
+snd_soc_core
+snd_soc_simple_card_utils
+snd_soc_audio_graph_card
+snd-soc-simple-card
+snd_soc_stm32_sai
+snd_soc_stm32_sai_sub
+cdc-acm
+libcomposite
+g_serial

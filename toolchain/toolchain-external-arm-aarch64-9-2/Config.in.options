@@ -1,0 +1,20 @@
+if BR2_TOOLCHAIN_EXTERNAL_ARM_AARCH64_9_2
+
+config BR2_TOOLCHAIN_EXTERNAL_PREFIX
+	default "aarch64-none-linux-gnu"
+
+config BR2_PACKAGE_PROVIDES_TOOLCHAIN_EXTERNAL
+	default "toolchain-external-arm-aarch64-9-2"
+
+config BR2_TOOLCHAIN_EXTERNAL_INET_RPC
+	bool "Toolchain has RPC support?"
+	default y if BR2_TOOLCHAIN_EXTERNAL_GLIBC
+	depends on !BR2_TOOLCHAIN_EXTERNAL_MUSL
+	select BR2_TOOLCHAIN_HAS_NATIVE_RPC
+	help
+	  Select this option if your external toolchain supports
+	  RPC. If you don't know, leave the default value, Buildroot
+	  will tell you if it's correct or not.
+
+endif
+

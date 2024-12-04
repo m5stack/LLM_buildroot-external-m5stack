@@ -1,0 +1,3292 @@
+diff -r -u -N drivers/soc/axera/osal/include/axdev.h b/drivers/soc/axera/osal/include/axdev.h"
+--- a/drivers/soc/axera/osal/include/axdev.h	1970-01-01 08:00:00.000000000 +0800
++++ b/drivers/soc/axera/osal/include/axdev.h	2024-12-04 17:23:53.979795115 +0800
+@@ -0,0 +1,95 @@
++/**************************************************************************************************
++ *
++ * Copyright (c) 2019-2024 Axera Semiconductor Co., Ltd. All Rights Reserved.
++ *
++ * This source file is the property of Axera Semiconductor Co., Ltd. and
++ * may not be copied or distributed in any isomorphic form without the prior
++ * written consent of Axera Semiconductor Co., Ltd.
++ *
++ **************************************************************************************************/
++
++#ifndef _LINUX_AXDEV_DEVICE_H_
++#define _LINUX_AXDEV_DEVICE_H_
++
++#include <linux/module.h>
++#include <linux/major.h>
++#include <linux/cdev.h>
++#include <linux/device.h>
++#include "osal_list.h"
++
++#define AXDEV_DEVICE_MAJOR  218
++#define AXDEV_DYNAMIC_MINOR 2048
++
++extern unsigned short ax_dev_minors[AXDEV_DYNAMIC_MINOR / 8];
++
++struct axdev_device;
++
++struct axdev_ops {
++	//pm methos
++	int (*pm_prepare) (struct axdev_device *);
++	void (*pm_complete) (struct axdev_device *);
++
++	int (*pm_suspend) (struct axdev_device *);
++	int (*pm_resume) (struct axdev_device *);
++
++	int (*pm_freeze) (struct axdev_device *);
++	int (*pm_thaw) (struct axdev_device *);
++	int (*pm_poweroff) (struct axdev_device *);
++	int (*pm_restore) (struct axdev_device *);
++
++	int (*pm_suspend_late) (struct axdev_device *);
++	int (*pm_resume_early) (struct axdev_device *);
++	int (*pm_freeze_late) (struct axdev_device *);
++	int (*pm_thaw_early) (struct axdev_device *);
++	int (*pm_poweroff_late) (struct axdev_device *);
++	int (*pm_restore_early) (struct axdev_device *);
++
++	int (*pm_suspend_noirq) (struct axdev_device *);
++	int (*pm_resume_noirq) (struct axdev_device *);
++
++	int (*pm_freeze_noirq) (struct axdev_device *);
++	int (*pm_thaw_noirq) (struct axdev_device *);
++	int (*pm_poweroff_noirq) (struct axdev_device *);
++	int (*pm_restore_noirq) (struct axdev_device *);
++};
++
++#define HIMIDIA_MAX_DEV_NAME_LEN 32
++
++struct axdev_driver {
++	struct device_driver driver;
++	struct axdev_ops *ops;
++	char name[1];
++};
++
++#define to_axdev_driver(drv)    \
++    container_of((drv), struct axdev_driver, driver)
++
++struct axdev_device {
++	struct osal_list_head list;
++	char devfs_name[HIMIDIA_MAX_DEV_NAME_LEN];
++	unsigned int major;
++	unsigned int minor;
++	struct device device;
++	struct module *owner;
++	const struct file_operations *fops;
++	struct axdev_ops *drvops;
++
++	/*for internal use */
++	struct axdev_driver *driver;
++	struct class *axdev_class;
++	struct cdev cdev;
++	dev_t devt;
++};
++
++#define to_axdev_device(dev) \
++    container_of((dev), struct axdev_device, device)
++
++int axdev_register(struct axdev_device *pdev);
++
++int axdev_unregister(struct axdev_device *pdev);
++
++#define MODULE_ALIAS_AXDEV(minor) \
++    MODULE_ALIAS("axdev-char-major-" __stringify(AXDEV_DEVICE_MAJOR) \
++    "-" __stringify(minor))
++
++#endif /*_LINUX_AXDEV_DEVICE_H_*/
+diff -r -u -N drivers/soc/axera/osal/include/axdev_log.h b/drivers/soc/axera/osal/include/axdev_log.h"
+--- a/drivers/soc/axera/osal/include/axdev_log.h	1970-01-01 08:00:00.000000000 +0800
++++ b/drivers/soc/axera/osal/include/axdev_log.h	2024-12-04 17:23:53.979795115 +0800
+@@ -0,0 +1,41 @@
++/**************************************************************************************************
++ *
++ * Copyright (c) 2019-2024 Axera Semiconductor Co., Ltd. All Rights Reserved.
++ *
++ * This source file is the property of Axera Semiconductor Co., Ltd. and
++ * may not be copied or distributed in any isomorphic form without the prior
++ * written consent of Axera Semiconductor Co., Ltd.
++ *
++ **************************************************************************************************/
++
++#ifndef _LINUX_AXDEV_LOG_H_
++#define _LINUX_AXDEV_LOG_H_
++
++#include <linux/printk.h>
++
++#define AXDEV_LOG_EMERG(fmt,...) \
++    pr_emerg("[AXDEV][KO][%s][%d]: "fmt, __FUNCTION__, __LINE__, ##__VA_ARGS__);
++
++#define AXDEV_LOG_ALERT(fmt,...) \
++    pr_alert("[AXDEV][KO][%s][%d]: "fmt, __FUNCTION__, __LINE__, ##__VA_ARGS__);
++
++#define AXDEV_LOG_CRIT(fmt,...) \
++    pr_crit("[AXDEV][KO][%s][%d]: "fmt, __FUNCTION__, __LINE__, ##__VA_ARGS__);
++
++#define AXDEV_LOG_ERR(fmt,...) \
++    pr_err("[AXDEV][KO][%s][%d]: "fmt, __FUNCTION__, __LINE__, ##__VA_ARGS__);
++
++#define AXDEV_LOG_WARN(fmt,...) \
++    pr_warning("[AXDEV][KO][%s][%d]: "fmt, __FUNCTION__, __LINE__, ##__VA_ARGS__);
++
++#define AXDEV_LOG_NOTICE(fmt,...) \
++    pr_notice("[AXDEV][KO][%s][%d]: "fmt, __FUNCTION__, __LINE__, ##__VA_ARGS__);
++
++#define AXDEV_LOG_INFO(fmt,...) \
++    pr_info("[AXDEV][KO][%s][%d]: "fmt, __FUNCTION__, __LINE__, ##__VA_ARGS__);
++
++#define AXDEV_LOG_DEBUG(fmt,...) \
++    pr_debug("[AXDEV][KO][%s][%d]: "fmt, __FUNCTION__, __LINE__, ##__VA_ARGS__);
++
++#define AXDEV_LOG_ERROR     AXDEV_LOG_ERR
++#endif
+diff -r -u -N drivers/soc/axera/osal/include/base.h b/drivers/soc/axera/osal/include/base.h"
+--- a/drivers/soc/axera/osal/include/base.h	1970-01-01 08:00:00.000000000 +0800
++++ b/drivers/soc/axera/osal/include/base.h	2024-12-04 17:23:53.979795115 +0800
+@@ -0,0 +1,26 @@
++/**************************************************************************************************
++ *
++ * Copyright (c) 2019-2024 Axera Semiconductor Co., Ltd. All Rights Reserved.
++ *
++ * This source file is the property of Axera Semiconductor Co., Ltd. and
++ * may not be copied or distributed in any isomorphic form without the prior
++ * written consent of Axera Semiconductor Co., Ltd.
++ *
++ **************************************************************************************************/
++
++#ifndef _AXDEV_BASE_H_
++#define _AXDEV_BASE_H_
++
++#include "axdev.h"
++
++int axdev_bus_init(void);
++void axdev_bus_exit(void);
++
++int axdev_device_register(struct axdev_device *pdev);
++void axdev_device_unregister(struct axdev_device *pdev);
++
++struct axdev_driver *axdev_driver_register(const char *name, struct module *owner, struct axdev_ops *ops);
++
++void axdev_driver_unregister(struct axdev_driver *pdrv);
++
++#endif
+diff -r -u -N drivers/soc/axera/osal/include/osal_ax.h b/drivers/soc/axera/osal/include/osal_ax.h"
+--- a/drivers/soc/axera/osal/include/osal_ax.h	1970-01-01 08:00:00.000000000 +0800
++++ b/drivers/soc/axera/osal/include/osal_ax.h	2024-12-04 17:23:53.979795115 +0800
+@@ -0,0 +1,529 @@
++/**************************************************************************************************
++ *
++ * Copyright (c) 2019-2024 Axera Semiconductor Co., Ltd. All Rights Reserved.
++ *
++ * This source file is the property of Axera Semiconductor Co., Ltd. and
++ * may not be copied or distributed in any isomorphic form without the prior
++ * written consent of Axera Semiconductor Co., Ltd.
++ *
++ **************************************************************************************************/
++
++#ifndef __OSAL_AX__H__
++#define __OSAL_AX__H__
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++#include "osal_type_ax.h"
++#include <linux/timer.h>
++#include <linux/uaccess.h>
++#include <linux/ax_hrtimer.h>
++
++#include <linux/version.h>
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 16, 0))
++#include <linux/iversion.h>
++#endif
++
++#define OSAL_VERSION_AX "0.50"
++
++#define AX_THREAD_SHOULD_STOP 1
++#define AX_TASK_RUNNING			0x0000
++#define AX_TASK_INTERRUPTIBLE		0x0001
++#define AX_TASK_UNINTERRUPTIBLE		0x0002
++
++
++#define AX_VERIFY_READ VERIFY_READ
++#define AX_VERIFY_WRITE VERIFY_WRITE
++
++#define AX_OSAL_USER_access_ok(type, addr, size) access_ok(type, addr, size)
++#define AX_OSAL_USER_put_user(x, ptr) __put_user(x, ptr)
++#define AX_OSAL_USER_get_user(x, ptr) __get_user(x, ptr)
++
++typedef int(*AX_THREAD_FUNC_T)(void *data);
++
++typedef struct AX_TASK {
++    void *task_struct;
++} AX_TASK_T;
++
++struct AX_CURRENT_TASK {
++	pid_t pid;
++	pid_t tgid;
++	void *mm;
++	char comm[16];
++};
++
++typedef struct AX_TASK_SCHED_PARAM {
++    int sched_priority;
++} AX_TASK_SCHED_PARAM_T;
++
++AX_TASK_T *AX_OSAL_TASK_kthread_run(AX_THREAD_FUNC_T thread, void *data, char *name);
++AX_TASK_T *AX_OSAL_TASK_kthread_create_ex(AX_THREAD_FUNC_T thread, void *data, char *name, int prioirty);
++int AX_OSAL_TASK_kthread_stop(AX_TASK_T *task, unsigned int stop_flag);
++int AX_OSAL_TASK_cond_resched(void);
++bool AX_OSAL_TASK_kthread_should_stop(void);
++
++void AX_OSAL_set_current_state(int state_value);
++void AX_OSAL_get_current(struct AX_CURRENT_TASK *ax_task);
++int AX_OSAL_sched_setscheduler(AX_TASK_T *task, int policy,
++		       const struct AX_TASK_SCHED_PARAM *param);
++void AX_OSAL_TASK_schedule(void);
++
++//semaphore api
++typedef struct AX_SEMAPHORE {
++    void *sem;
++} AX_SEMAPHORE_T;
++
++int AX_OSAL_SYNC_sema_init(AX_SEMAPHORE_T *sem, int val);
++//only for linux kernel
++int AX_OSAL_SYNC_sema_down_interruptible(AX_SEMAPHORE_T *sem);
++int AX_OSAL_SYNC_sema_down(AX_SEMAPHORE_T *sem);
++int AX_OSAL_SYNC_sema_down_timeout(AX_SEMAPHORE_T *sem, long timeout);
++int AX_OSAL_SYNC_sema_down_trylock(AX_SEMAPHORE_T *sem);
++void AX_OSAL_SYNC_sema_up(AX_SEMAPHORE_T *sem);
++void AX_OSAL_SYNC_sema_destroy(AX_SEMAPHORE_T *sem);
++
++//mutex api
++typedef struct AX_MUTEX {
++    void *mutex;
++} AX_MUTEX_T;
++
++
++#ifndef CONFIG_DEBUG_MUTEXES
++int AX_OSAL_SYNC_mutex_init(AX_MUTEX_T *mutex);
++#else
++void *AX_OSAL_DBG_mutex_init(AX_MUTEX_T * mutex);
++#define AX_OSAL_SYNC_mutex_init(mutex)                     \
++          ({                                               \
++		int ret = 0;                               \
++		void *p = AX_OSAL_DBG_mutex_init(mutex);   \
++		if (p != NULL)                             \
++			mutex_init(p);                     \
++		else                                       \
++			ret = -1;                          \
++		ret;                                       \
++         })
++#endif
++
++int AX_OSAL_SYNC_mutex_lock(AX_MUTEX_T *mutex);
++//only for linux kernel
++int AX_OSAL_SYNC_mutex_lock_interruptible(AX_MUTEX_T *mutex);
++int AX_OSAL_SYNC_mutex_trylock(AX_MUTEX_T *mutex);
++void AX_OSAL_SYNC_mutex_unlock(AX_MUTEX_T *mutex);
++void AX_OSAL_SYNC_mutex_destroy(AX_MUTEX_T *mutex);
++
++#define DEFINE_AX_OSAL_SYNC_MUTEX(mutex_name) \
++	DEFINE_MUTEX(osal##mutex_name); \
++	AX_MUTEX_T mutex_name = { \
++			.mutex = &osal##mutex_name, \
++		}
++
++//spin lock api
++typedef struct AX_SPINLOCK {
++    void *lock;
++} AX_SPINLOCK_T;
++
++#ifndef CONFIG_DEBUG_SPINLOCK
++int AX_OSAL_SYNC_spin_lock_init(AX_SPINLOCK_T *lock);
++#else
++spinlock_t *AX_OSAL_DBG_spin_lock_init(AX_SPINLOCK_T *lock);
++
++#define AX_OSAL_SYNC_spin_lock_init(lock)                     \
++	({                                                    \
++		int ret = 0;                                  \
++		spinlock_t *p = AX_OSAL_DBG_spin_lock_init(lock);   \
++		if(p != NULL)                                 \
++			spin_lock_init(p);                    \
++		else                                          \
++			ret = -1;                             \
++ 		ret;                                          \
++	})
++#endif
++
++void AX_OSAL_SYNC_spin_lock(AX_SPINLOCK_T *lock);
++int AX_OSAL_SYNC_spin_trylock(AX_SPINLOCK_T *lock);
++void AX_OSAL_SYNC_spin_unlock(AX_SPINLOCK_T *lock);
++void AX_OSAL_SYNC_spin_lock_irqsave(AX_SPINLOCK_T *lock, unsigned int *flags);
++void AX_OSAL_SYNC_spin_unlock_irqrestore(AX_SPINLOCK_T *lock, unsigned int *flags);
++void AX_OSAL_SYNC_spinLock_destory(AX_SPINLOCK_T *lock);
++
++#define DEFINE_AX_OSAL_SYNC_SPINLOCK(lock_name) \
++	DEFINE_SPINLOCK(osal##lock_name); \
++	AX_SPINLOCK_T lock_name = { \
++		   .lock = &osal##lock_name};
++
++
++
++
++typedef struct AX_RT_MUTEX {
++    void *rt_mutex;
++} AX_RT_MUTEX_T;
++
++#ifdef CONFIG_DEBUG_RT_MUTEXES
++int AX_OSAL_DBG_rt_mutex_init(AX_RT_MUTEX_T * rt_mutex,struct lock_class_key *__key);
++# define AX_OSAL_SYNC_rt_mutex_init(rt_mutex)                    \
++({                                                               \
++	int __ret = 0;                                           \
++	static struct lock_class_key __key;                      \
++	__ret = AX_OSAL_DBG_rt_mutex_init(rt_mutex,&__key);      \
++	if(__ret < 0)                                            \
++		__ret = __ret;                                   \
++	__ret;                                                   \
++})
++
++#else
++int AX_OSAL_SYNC_rt_mutex_init(AX_RT_MUTEX_T * mutex);
++#endif
++
++void AX_OSAL_SYNC_rt_mutex_lock(AX_RT_MUTEX_T * mutex);
++void AX_OSAL_SYNC_rt_mutex_unlock(AX_RT_MUTEX_T * mutex);
++void AX_OSAL_SYNC_rt_mutex_destroy(AX_RT_MUTEX_T * mutex);
++
++//atomic api
++typedef struct AX_ATOMIC {
++    void *atomic;
++} AX_ATOMIC_T;
++
++int AX_OSAL_SYNC_atomic_init(AX_ATOMIC_T *atomic);
++int AX_OSAL_SYNC_atomic_read(AX_ATOMIC_T *atomic);
++void AX_OSAL_SYNC_atomic_set(AX_ATOMIC_T *atomic, int val);
++int AX_OSAL_SYNC_atomic_inc_return(AX_ATOMIC_T *atomic);
++int AX_OSAL_SYNC_atomic_dec_return(AX_ATOMIC_T *atomic);
++int AX_OSAL_SYNC_atomic_cmpxchg(AX_ATOMIC_T *atomic, int old, int new);
++bool AX_OSAL_SYNC_atomic_try_cmpxchg(AX_ATOMIC_T * atomic, int *old, int new);
++void AX_OSAL_SYNC_atomic_and(int val,AX_ATOMIC_T * atomic);
++void AX_OSAL_SYNC_atomic_or(int val,AX_ATOMIC_T * atomic);
++int AX_OSAL_SYNC_atomic_fetch_add_ge(AX_ATOMIC_T * atomic, int add, int used);
++void AX_OSAL_SYNC_atomic_destroy(AX_ATOMIC_T *atomic);
++
++
++//barrier api
++void AX_OSAL_SYNC_mb(void);
++void AX_OSAL_SYNC_rmb(void);
++void AX_OSAL_SYNC_wmb(void);
++void AX_OSAL_SYNC_isb(void);
++void AX_OSAL_SYNC_dsb(void);
++void AX_OSAL_SYNC_dmb(void);
++
++
++//workqueue api
++typedef struct AX_WORK {
++    void *work;
++    void(*func)(struct AX_WORK *work);
++} AX_WORK_T;
++typedef void(*AX_WORK_FUNC_T)(AX_WORK_T *work);
++
++int AX_OSAL_SYNC_init_work(AX_WORK_T *work, AX_WORK_FUNC_T func);
++int AX_OSAL_SYNC_schedule_work(AX_WORK_T *work);
++void AX_OSAL_SYNC_destroy_work(AX_WORK_T *work);
++
++int AX_OSAL_SYNC_init_delayed_work(AX_WORK_T *work, AX_WORK_FUNC_T func);
++int AX_OSAL_SYNC_schedule_delayed_work(AX_WORK_T *work, unsigned long delay);
++void AX_OSAL_SYNC_destroy_delayed_work(AX_WORK_T *work);
++int AX_OSAL_SYNC_cancel_delayed_work(AX_WORK_T *osal_work);
++int AX_OSAL_SYNC_cancel_delayed_work_sync(AX_WORK_T *osal_work);
++
++//waitqueue api
++#define AX_OSAL_SYNC_INTERRUPTIBLE  0
++#define AX_OSAL_SYNC_UNINTERRUPTIBLE    1
++
++#define DEFINE_AX_OSAL_SYNC_WAIT_QUEUE_HEAD(wq_name) \
++	DECLARE_WAIT_QUEUE_HEAD(osal##wq_name); \
++	AX_WAIT_T wq_name = { \
++		   .wait = &osal##wq_name};
++typedef int(*AX_WAIT_COND_FUNC_T)(void *param);
++
++typedef struct AX_WAIT {
++    void *wait;
++} AX_WAIT_T;
++int AX_OSAL_SYNC_waitqueue_init(AX_WAIT_T *wait);
++unsigned int AX_OSAL_SYNC_wait_uninterruptible(AX_WAIT_T *wait, AX_WAIT_COND_FUNC_T func, void *param);
++//only for linux kernel
++unsigned int AX_OSAL_SYNC_wait_interruptible(AX_WAIT_T *wait, AX_WAIT_COND_FUNC_T func, void *param);
++unsigned int AX_OSAL_SYNC_wait_uninterruptible_timeout(AX_WAIT_T *wait, AX_WAIT_COND_FUNC_T func, void *param,
++        unsigned long timeout);
++//only for linux kernel
++unsigned int AX_OSAL_SYNC_wait_interruptible_timeout(AX_WAIT_T *wait, AX_WAIT_COND_FUNC_T func, void *param,
++        unsigned long timeout);
++void AX_OSAL_SYNC_wakeup(AX_WAIT_T *wait, void *key);
++void AX_OSAL_SYNC_wake_up_interruptible(AX_WAIT_T *osal_wait, void *key);
++void AX_OSAL_SYNC_wake_up_interruptible_all(AX_WAIT_T *wait, void *key);
++
++void AX_OSAL_SYNC_wait_destroy(AX_WAIT_T *wait);
++
++/*wait event*/
++
++#define AX_OSAL_SYNC_wait_event_interruptible(wait, func, param) \
++		({									\
++			int __ret = 0;							\
++			for (;;){						   \
++				if(func(param)){					   \
++					__ret = 0;					\
++					break;					  \
++				}\
++				__ret = AX_OSAL_SYNC_wait_interruptible(wait, (func), param);	\
++				if(__ret < 0){				  \
++					if(__ret == -2) {  \
++						__ret = 0;   \
++					}  \
++					break;  \
++				}   \
++			}									 \
++			__ret;									 \
++		})
++
++
++
++#define AX_OSAL_SYNC_wait_event_interruptible_timeout(wait, func, param, timeout) \
++	({									\
++		int __ret = timeout;						  \
++									   \
++		if ((func(param)) && !timeout) \
++		{ \
++		__ret = 1; \
++		} \
++											  \
++		for (;;) {							\
++			if (func(param))					   \
++			{\
++				break;					  \
++			}\
++			__ret = AX_OSAL_SYNC_wait_interruptible_timeout(wait, (func), param, __ret);	 \
++			if(__ret < 0)	\
++			{\
++				break;  \
++			}\
++			if(!__ret && !func(param))  \
++			{\
++				__ret = -ETIMEDOUT;   \
++				break;  \
++			}\
++		}									\
++		__ret;									 \
++	})
++
++#define AX_OSAL_SYNC_wait_event(wait, func, param) \
++({                                  \
++    int __ret = 0;                          \
++    for (;;){                          \
++        if(func(param)){                       \
++            __ret = 0;                  \
++            break;                    \
++        }\
++        __ret = AX_OSAL_SYNC_wait_uninterruptible(wait, (func), param);   \
++        if(__ret < 0)                 \
++            break;           \
++    }                                    \
++    __ret;                                   \
++})
++
++#define AX_OSAL_SYNC_wait_event_timeout(wait, func, param, timeout) \
++({                                  \
++    int __ret = timeout;                          \
++                                   \
++    if ((func(param)) && !timeout) \
++    { \
++    __ret = 1; \
++    } \
++                                          \
++    for (;;) {                          \
++        if (func(param))                       \
++        {\
++            break;                    \
++        }\
++        __ret = AX_OSAL_SYNC_wait_uninterruptible_timeout(wait, (func), param, __ret);   \
++	if(!__ret && !func(param))  \
++	{\
++        	__ret = -ETIMEDOUT;   \
++        	break;                \
++	}\
++    }                                   \
++    __ret;                                   \
++})
++
++
++//timer api
++typedef struct AX_TIMER {
++    struct timer_list timer;
++    void(*function)(void *);
++    long data;
++} AX_TIMER_T;
++
++typedef struct AX_TIMERVAL {
++    long tv_sec;
++    long tv_usec;
++} AX_TIMERVAL_T;
++
++typedef struct AX_TIMERSPEC64 {
++    long long int  tv_sec;
++    long tv_nsec;
++} AX_TIMERSPEC64_T;
++
++typedef struct AX_RTC_TIMER {
++    int tm_sec;
++    int tm_min;
++    int tm_hour;
++    int tm_mday;
++    int tm_mon;
++    int tm_year;
++    int tm_wday;
++    int tm_yday;
++    int tm_isdst;
++} AX_RTC_TIMER_T;
++
++#define AX_OSAL_HRTIMER_NORESTART  0      /* Timer is not restarted */
++#define AX_OSAL_HRTIMER_RESTART   1        /* Timer must be restarted */
++
++long AX_OSAL_DEV_usleep(unsigned long use);
++void *AX_OSAL_DEV_hrtimer_alloc(unsigned long use,int (*function)(void *),void *private);
++void AX_OSAL_DEV_hrtimer_destroy(void *timer);
++int AX_OSAL_DEV_hrtimer_start(void *timer);
++int AX_OSAL_DEV_hrtimer_stop(void *timer);
++
++int AX_OSAL_TMR_init_timers(AX_TIMER_T *timer);
++unsigned int AX_OSAL_TMR_mod_timer(AX_TIMER_T *timer, unsigned long interval);
++unsigned int AX_OSAL_TMR_del_timer(AX_TIMER_T *timer);
++int AX_OSAL_TMR_destory_timer(AX_TIMER_T *timer);
++unsigned long AX_OSAL_TM_msleep(unsigned int msecs);
++void AX_OSAL_TM_udelay(unsigned int usecs);
++void AX_OSAL_TM_mdelay(unsigned int msecs);
++long  AX_OSAL_TM_msecs_to_jiffies(long ax_msecs);
++unsigned int AX_OSAL_TM_jiffies_to_msecs(void);
++u64 AX_OSAL_TM_sched_clock(void);
++u64 AX_OSAL_TM_get_microseconds(void);
++//only for linux kernel
++void AX_OSAL_TM_do_gettimeofday(AX_TIMERVAL_T *tm);
++void AX_OSAL_TM_do_settimeofday(AX_TIMERVAL_T *tm);
++//only for linux kernel
++void AX_OSAL_TM_rtc_time_to_tm(unsigned long time, AX_RTC_TIMER_T *tm);
++//only for linux kernel
++void AX_OSAL_TM_rtc_tm_to_time(AX_RTC_TIMER_T *tm, unsigned long *time);
++void AX_OSAL_TM_get_jiffies(u64 *pjiffies);
++//only for linux kernel
++int AX_OSAL_TM_rtc_valid_tm(AX_RTC_TIMER_T *tm);
++u64 AX_OSAL_TM_get_microsecond(void);
++void AX_OSAL_TM_hrtimer_mdelay(unsigned int msecs);
++void AX_OSAL_TM_hrtimer_udelay(unsigned long usecs);
++void AX_OSAL_TM_ktime_get_real_ts64( AX_TIMERSPEC64_T *tm);
++unsigned long AX_OSAL_TMR_get_tmr64_clk(void);
++
++
++//kmalloc , memory
++#define AX_OSAL_GFP_ATOMIC  0
++#define AX_OSAL_GFP_KERNEL  1
++
++void *AX_OSAL_MEM_kmalloc(u32 size, unsigned int osal_gfp_flag);
++void *AX_OSAL_MEM_kzalloc(u32 size, unsigned int osal_gfp_flag);
++void AX_OSAL_MEM_kfree(const void *addr);
++void *AX_OSAL_MEM_vmalloc(u32 size);
++void AX_OSAL_MEM_vfree(const void *addr);
++int AX_OSAL_MEM_VirtAddrIsValid(unsigned long vm_start, unsigned long vm_end);
++int AX_OSAL_MEM_AddrMunmap(unsigned long start, u32 size);
++unsigned long AX_OSAL_MEM_AddrMmap(void *file, unsigned long addr,
++	unsigned long len, unsigned long prot, unsigned long flag, unsigned long offset);
++
++void *ax_os_mem_kmalloc(int id, size_t size, u32 flag);
++void *ax_os_mem_kzalloc(int id, size_t size, u32 flag);
++void ax_os_mem_kfree(int id, const void *addr);
++void *ax_os_mem_vmalloc(int id, size_t size);
++void ax_os_mem_vfree(int id, const void *addr);
++s32 ax_os_release_reserved_mem(unsigned long phy_start, size_t size, const char *s);
++
++//file system , only for linux kernel
++#define AX_OSAL_O_RDONLY         00
++#define AX_OSAL_O_WRONLY         01
++#define AX_OSAL_O_RDWR           02
++
++#define AX_OSAL_O_CREAT        0100
++#define AX_OSAL_O_EXCL         0200
++#define AX_OSAL_O_NOCTTY       0400
++#define AX_OSAL_O_TRUNC       01000
++#define AX_OSAL_O_APPEND      02000
++#define AX_OSAL_O_NONBLOCK    04000
++#define AX_OSAL_O_DSYNC      010000
++#define AX_OSAL_O_SYNC     04010000
++#define AX_OSAL_O_RSYNC    04010000
++#define AX_OSAL_O_BINARY    0100000
++#define AX_OSAL_O_DIRECTORY 0200000
++#define AX_OSAL_O_NOFOLLOW  0400000
++#define AX_OSAL_O_CLOEXEC  02000000
++
++void *AX_OSAL_FS_filp_open(const char *filename, int flags, int mode);
++void AX_OSAL_FS_filp_close(void * filp);
++int AX_OSAL_FS_filp_write(char *buf, int len, void * filp);
++int AX_OSAL_FS_filp_read(char *buf, int len, void * filp);
++
++/*module init&exit API*/
++/*IMPORTANT: 'module init&exit' not support to compat OS, later we will fixed, because we may change RTT sourcecode*/
++
++/*Linux init module */
++#include <linux/module.h>
++#include <linux/mm.h>
++#include <linux/mman.h>
++#include <linux/fcntl.h>
++#include <linux/of.h>
++#include <linux/irqreturn.h>
++
++#define AX_OSAL_module_initcall(fn) module_init(fn);
++#define AX_OSAL_module_exit(fn) module_exit(fn);
++
++
++
++/*IO write/read*/
++#define AX_OSAL_IO_writel(v, x) (*((volatile int *)(x)) = (v))
++#define AX_OSAL_IO_readl(x) (*((volatile int *)(x)))
++
++void AX_OSAL_IO_bit_set(unsigned int *bitmap, int pos);
++void AX_OSAL_IO_bit_clean(unsigned int *bitmap, int pos);
++
++/* srcu api */
++typedef struct AX_OSAL_srcu_struct {
++	void *ssp;
++} AX_OSAL_srcu_struct_t;
++
++#ifndef CONFIG_DEBUG_LOCK_ALLOC
++int AX_OSAL_init_srcu_struct(AX_OSAL_srcu_struct_t *ssp);
++#else
++#include <linux/slab.h>
++void *AX_OSAL_DBG_init_srcu_struct(AX_OSAL_srcu_struct_t *ssp);
++#define AX_OSAL_init_srcu_struct(ssp)				\
++	({							\
++		int ret = 0;					\
++		void *p = AX_OSAL_DBG_init_srcu_struct(ssp);	\
++		if (p != NULL) {				\
++			ret = init_srcu_struct(p);		\
++			if (ret != 0) {				\
++				kfree(p);			\
++				ssp->ssp = NULL;		\
++			}					\
++		} else {					\
++			ret = -1;				\
++		}						\
++		ret;						\
++	})
++#endif
++void AX_OSAL_cleanup_srcu_struct(AX_OSAL_srcu_struct_t *ssp);
++int AX_OSAL_srcu_read_lock(AX_OSAL_srcu_struct_t *ssp);
++void AX_OSAL_srcu_read_unlock(AX_OSAL_srcu_struct_t *ssp, int idx);
++void AX_OSAL_synchronize_srcu(AX_OSAL_srcu_struct_t *ssp);
++
++/* percpu api */
++#define AX_OSAL___percpu __percpu
++#define AX_OSAL_for_each_possible_cpu for_each_possible_cpu
++
++unsigned int AX_OSAL___percpu *AX_OSAL_alloc_percpu_u32(void);
++unsigned int *AX_OSAL_this_cpu_ptr_u32(unsigned int AX_OSAL___percpu *ptr);
++unsigned int *AX_OSAL_get_cpu_ptr_u32(unsigned int AX_OSAL___percpu *ptr);
++void AX_OSAL_put_cpu_ptr_u32(unsigned int AX_OSAL___percpu *ptr);
++unsigned int *AX_OSAL_per_cpu_ptr_u32(unsigned int AX_OSAL___percpu *ptr, int cpu);
++void AX_OSAL_free_percpu_u32(unsigned int AX_OSAL___percpu *ptr);
++
++/* prefetch api */
++void AX_OSAL_prefetch(void *addr);
++void AX_OSAL_prefetchw(void *addr);
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif /*__OSAL_AX__H__*/
+diff -r -u -N drivers/soc/axera/osal/include/osal_cmm_ax.h b/drivers/soc/axera/osal/include/osal_cmm_ax.h"
+--- a/drivers/soc/axera/osal/include/osal_cmm_ax.h	1970-01-01 08:00:00.000000000 +0800
++++ b/drivers/soc/axera/osal/include/osal_cmm_ax.h	2024-12-04 17:23:53.979795115 +0800
+@@ -0,0 +1,37 @@
++/**************************************************************************************************
++ *
++ * Copyright (c) 2019-2024 Axera Semiconductor Co., Ltd. All Rights Reserved.
++ *
++ * This source file is the property of Axera Semiconductor Co., Ltd. and
++ * may not be copied or distributed in any isomorphic form without the prior
++ * written consent of Axera Semiconductor Co., Ltd.
++ *
++ **************************************************************************************************/
++
++#ifndef __OSAL_CMM_AX__H__
++#define __OSAL_CMM_AX__H__
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++#include "osal_type_ax.h"
++
++int ax_cmm_userdev_init(void);
++int ax_cmm_userdev_exit(void);
++
++int AX_OSAL_MemAlloc(unsigned long long int *phyaddr, void **ppviraddr, unsigned int size, unsigned int align, char *token);
++int AX_OSAL_MemAllocCached(unsigned long long int *phyaddr, void **pviraddr, unsigned int size, unsigned int align, char *token);
++int AX_OSAL_MemFlushCache(unsigned long long int phyaddr, void *pviraddr, unsigned int size);
++int AX_OSAL_MemInvalidateCache(unsigned long long int phyaddr, void *pviraddr, unsigned int size);
++int AX_OSAL_MemFree(unsigned long long int phyaddr, void *pviraddr);
++void *AX_OSAL_Mmap(unsigned long long int phyaddr, unsigned int size);
++void *AX_OSAL_MmapCache(unsigned long long int phyaddr, unsigned int size);
++int AX_OSAL_Munmap(void *pviraddr);
++int AX_OSAL_MemGetBlockInfoByPhy(unsigned long long int phyaddr, int *pmemType, void **pviraddr, unsigned int *pblockSize);
++int AX_OSAL_MemGetBlockInfoByVirt(void *pviraddr, unsigned long long int *phyaddr, int *pmemType);
++#ifdef __cplusplus
++}
++#endif
++
++#endif /*__OSAL_CMM_AX__H__*/
+diff -r -u -N drivers/soc/axera/osal/include/osal_dev_ax.h b/drivers/soc/axera/osal/include/osal_dev_ax.h"
+--- a/drivers/soc/axera/osal/include/osal_dev_ax.h	1970-01-01 08:00:00.000000000 +0800
++++ b/drivers/soc/axera/osal/include/osal_dev_ax.h	2024-12-04 17:23:53.983795199 +0800
+@@ -0,0 +1,323 @@
++/**************************************************************************************************
++ *
++ * Copyright (c) 2019-2024 Axera Semiconductor Co., Ltd. All Rights Reserved.
++ *
++ * This source file is the property of Axera Semiconductor Co., Ltd. and
++ * may not be copied or distributed in any isomorphic form without the prior
++ * written consent of Axera Semiconductor Co., Ltd.
++ *
++ **************************************************************************************************/
++
++#ifndef __OSAL_DEV_AX__H__
++#define __OSAL_DEV_AX__H__
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++#include "osal_type_ax.h"
++#include "osal_ax.h"
++
++//device
++#define AX_OSAL_L_PTE_VALID     0
++#define AX_OSAL_L_PTE_PRESENT   1
++#define AX_OSAL_L_PTE_YOUNG     2
++#define AX_OSAL_L_PTE_DIRTY     3
++
++#define AX_OSAL_L_PTE_MT_DEV_SHARED     4
++#define AX_OSAL_L_PTE_MT_DEV_NONSHARED  5
++#define AX_OSAL_L_PTE_MT_DEV_WC         6
++#define AX_OSAL_L_PTE_MT_DEV_CACHED     7
++
++#define AX_OSAL_SEEK_SET 0
++#define AX_OSAL_SEEK_CUR 1
++#define AX_OSAL_SEEK_END 2
++
++#define AXERA_RESOURCE_NAME 32
++
++enum AX_DEVFREQ_TIMER {
++        AX_DEVFREQ_TIMER_DEFERRABLE = 0,
++        AX_DEVFREQ_TIMER_DELAYED,
++        AX_DEVFREQ_TIMER_NUM,
++};
++
++struct AX_DEVFREQ_DEV_STATUS {
++        /* both since the last measure */
++        unsigned long total_time;
++        unsigned long busy_time;
++        unsigned long current_frequency;
++        void *private_data;
++};
++
++
++struct AX_DEVFREQ_DEV_PROFILE {
++        unsigned long initial_freq;
++        int polling_ms;
++        enum AX_DEVFREQ_TIMER timer;
++        bool is_cooling_device;
++
++        int (*target)(void *dev,unsigned long rate,unsigned long volt);
++        int (*get_dev_status)(void *dev,
++                              struct AX_DEVFREQ_DEV_STATUS *stat);
++        unsigned long (*get_cur_freq)(void *dev);
++        void (*exit)(void *dev);
++
++        unsigned long *freq_table;
++        int max_state;
++};
++
++
++struct AXERA_RESOURCE {
++    u64 start;
++    u64 end;
++    unsigned char name[AXERA_RESOURCE_NAME];
++    u64 flags;
++    u64 desc;
++};
++
++struct AX_OF_DEVICE_ID  {
++    unsigned char    name[32];
++    unsigned char    type[32];
++    unsigned char    compatible[128];
++    const void *data;
++};
++
++struct AX_PLATFORM_DEVICE_DRIVER {
++    const unsigned char      *name;
++#if defined(CONFIG_OF)
++    const void   *of_match_table;
++#endif
++};
++
++
++struct AX_PLATFORM_DRIVER {
++    int (*probe)(void *);
++    int (*remove)(void *);
++    void (*shutdown)(void *);
++    int (*suspend)(void *);
++    int (*resume)(void *);
++    int (*suspend_noirq)(void *);
++    int (*resume_early)(void *);
++    int (*suspend_late)(void *);
++    int (*resume_noirq)(void *);
++
++    struct AX_PLATFORM_DEVICE_DRIVER driver;
++    void *axera_ptr;
++};
++
++
++typedef struct AX_POLL {
++    void *poll_table;
++    void *data;
++    void *wait; /*AX_WAIT, only support one poll, read or write*/
++} AX_POLL_T;
++
++typedef struct AX_DEV {
++    char name[48];
++    void *dev;
++    int minor;
++    struct AX_FILEOPS *fops;
++    struct AX_PMOPS *osal_pmops;
++    void *private_data;
++    struct AX_POLL dev_poll;
++    struct AX_WAIT dev_wait;
++} AX_DEV_T;
++
++typedef struct AX_VM {
++    void *vm;
++} AX_VM_T;
++
++typedef struct AX_DEV_PRIVATE_DATA {
++    struct AX_DEV *dev;
++    void *data;
++    struct AX_POLL table;
++    int f_ref_cnt;
++    unsigned int f_flags;		//todo: this parameter will be deleted after the driver modification is completed
++    struct file *file;
++} AX_DEV_PRIVATE_DATA_T;
++
++#define AX_OSAL_DEV_PRI_DATA(pri_data) ((( struct AX_DEV_PRIVATE_DATA  *)pri_data)->data)
++
++typedef struct AX_FILEOPS {
++    int(*open)(void *private_data);
++    int(*read)(char *buf, int size, long *offset, void *private_data);
++    int(*write)(const char *buf, int size, long *offset, void *private_data);
++    long(*llseek)(long offset, int whence, void *private_data);
++    int(*release)(void *private_data);
++    long(*unlocked_ioctl)(unsigned int cmd, unsigned long arg, void *private_data);
++    unsigned int(*poll)(AX_POLL_T *osal_poll, void *private_data);
++
++    /*******RTT not support mmap*************/
++    int (*mmap) (AX_VM_T *vm, unsigned long start, unsigned long end, unsigned long vm_pgoff, void *private_data);
++} AX_FILEOPS_T;
++
++typedef struct AX_PMOPS {
++    int(*pm_suspend)(AX_DEV_T *dev);
++    int(*pm_resume)(AX_DEV_T *dev);
++    int(*pm_suspend_late)(AX_DEV_T *dev);
++    int(*pm_resume_early)(AX_DEV_T *dev);
++
++    /*******RTT not support the other pm ops*************/
++    int (*pm_prepare)(AX_DEV_T *dev);
++    void (*pm_complete)(AX_DEV_T *dev);
++    int (*pm_freeze)(AX_DEV_T *dev);
++    int (*pm_thaw)(AX_DEV_T *dev);
++    int (*pm_poweroff)(AX_DEV_T *dev);
++    int (*pm_restore)(AX_DEV_T *dev);
++    int (*pm_freeze_late)(AX_DEV_T *dev);
++    int (*pm_thaw_early)(AX_DEV_T *dev);
++    int (*pm_poweroff_late)(AX_DEV_T *dev);
++    int (*pm_restore_early)(AX_DEV_T *dev);
++    int (*pm_suspend_noirq)(AX_DEV_T *dev);
++    int (*pm_resume_noirq)(AX_DEV_T *dev);
++    int (*pm_freeze_noirq)(AX_DEV_T *dev);
++    int (*pm_thaw_noirq)(AX_DEV_T *dev);
++    int (*pm_poweroff_noirq)(AX_DEV_T *dev);
++    int (*pm_restore_noirq)(AX_DEV_T *dev);
++} AX_OSAL_PMOPS_T;
++
++AX_DEV_T *AX_OSAL_DEV_createdev(char *name);
++int AX_OSAL_DEV_destroydev(AX_DEV_T *ax_dev);
++int AX_OSAL_DEV_device_register(AX_DEV_T *ax_dev);
++void AX_OSAL_DEV_device_unregister(AX_DEV_T *ax_dev);
++//only for linux kernel
++void AX_OSAL_DEV_poll_wait(AX_POLL_T *table, AX_WAIT_T *wait);
++//only for linux kernel
++void AX_OSAL_DEV_pgprot_noncached(AX_VM_T *vm);
++//only for linux kernel
++void AX_OSAL_DEV_pgprot_cached(AX_VM_T *vm);
++//only for linux kernel
++void AX_OSAL_DEV_pgprot_writecombine(AX_VM_T *vm);
++//only for linux kernel
++void AX_OSAL_DEV_pgprot_stronglyordered(AX_VM_T *vm);
++//only for linux kernel
++int AX_OSAL_DEV_remap_pfn_range(AX_VM_T *vm, unsigned long addr, unsigned long pfn, unsigned long size);
++//only for linux kernel
++int AX_OSAL_DEV_io_remap_pfn_range(AX_VM_T *vm, unsigned long addr, unsigned long pfn, unsigned long size);
++//only for linux kernel
++void *AX_OSAL_DEV_to_dev(AX_DEV_T *ax_dev);
++
++//addr translate
++//only for linux kernel
++void *AX_OSAL_DEV_ioremap(unsigned long phys_addr, unsigned long size);
++//only for linux kernel
++void *AX_OSAL_DEV_ioremap_nocache(unsigned long phys_addr, unsigned long size);
++//only for linux kernel
++void *AX_OSAL_DEV_ioremap_cache(unsigned long phys_addr, unsigned long size);
++//only for linux kernel
++void AX_OSAL_DEV_iounmap(void *addr);
++unsigned long AX_OSAL_DEV_copy_from_user(void *to, const void *from, unsigned long n);
++unsigned long AX_OSAL_DEV_copy_to_user(void *to, const void *from, unsigned long n);
++
++unsigned long AX_OSAL_DEV_usr_virt_to_phys(unsigned long virt);
++unsigned long AX_OSAL_DEV_kernel_virt_to_phys(void *virt);
++//cache api
++void AX_OSAL_DEV_invalidate_dcache_area(void  *addr, int size);
++void AX_OSAL_DEV_flush_dcache_area(void *kvirt, unsigned long length);
++//only for linux kernel
++void AX_OSAL_DEV_flush_dcache_all(void);
++
++void AX_OSAL_DEV_outer_dcache_area(u64 phys_addr_start, u64 phys_addr_end);
++
++//interrupt api
++typedef int(*AX_IRQ_HANDLER_T)(int, void *);
++int AX_OSAL_DEV_request_threaded_irq(unsigned int irq, AX_IRQ_HANDLER_T handler, AX_IRQ_HANDLER_T thread_fn,
++                                        const char *name, void *dev);
++int AX_OSAL_DEV_request_threaded_irq_ex(unsigned int irq, AX_IRQ_HANDLER_T handler, AX_IRQ_HANDLER_T thread_fn,
++                                        unsigned long flags, const char *name, void *dev);
++
++const void *AX_OSAL_DEV_free_irq(unsigned int irq, void *dev);
++int AX_OSAL_DEV_in_interrupt(void);
++
++void AX_OSAL_DEV_enable_irq(unsigned int irq);
++void AX_OSAL_DEV_disable_irq(unsigned int irq);
++void AX_OSAL_DEV_disable_irq_nosync(unsigned int irq);
++
++enum AX_OSAL_irqchip_irq_state {
++	AX_OSAL_IRQCHIP_STATE_PENDING,		/* Is interrupt pending? */
++	AX_OSAL_IRQCHIP_STATE_ACTIVE,		/* Is interrupt in progress? */
++	AX_OSAL_IRQCHIP_STATE_MASKED,		/* Is interrupt masked? */
++	AX_OSAL_IRQCHIP_STATE_LINE_LEVEL,	/* Is IRQ line high? */
++};
++
++int AX_OSAL_DEV_irq_get_irqchip_state(unsigned int irq, enum AX_OSAL_irqchip_irq_state which,
++			  int *state);
++
++int AX_OSAL_DEV_irq_set_irqchip_state(unsigned int irq, enum AX_OSAL_irqchip_irq_state which,
++			  int val);
++
++
++/*device framework(platform) API*/
++int AX_OSAL_DEV_platform_driver_register(void *drv);
++void AX_OSAL_DEV_platform_driver_unregister(void *drv);
++int AX_OSAL_DEV_platform_get_resource_byname(void *dev, unsigned int type, const char *name,struct AXERA_RESOURCE *res);
++int AX_OSAL_DEV_platform_get_resource(void *dev, unsigned int type, unsigned int num,struct AXERA_RESOURCE *res);
++int AX_OSAL_DEV_platform_get_irq(void *dev, unsigned int num);
++int AX_OSAL_DEV_platform_get_irq_byname(void *dev, const char *name);
++unsigned long AX_OSAL_DEV_resource_size(const struct AXERA_RESOURCE *res);
++void *AX_OSAL_DEV_platform_get_drvdata(void *pdev);
++void AX_OSAL_DEV_platform_set_drvdata(void *pdev,void *data);
++int AX_OSAL_DEV_platform_irq_count(void *dev);
++void  *AX_OSAL_DEV_to_platform_device(void * dev);
++void  *AX_OSAL_DEV_to_platform_driver(void * drv);
++
++int AX_OSAL_DEV_of_property_read_string(void *pdev,const char *propname,const char **out_string);
++#if 0
++const void *AX_OSAL_DEV_of_get_property(void *pdev, const char *name,int *lenp);
++int AX_OSAL_DEV_of_property_read_string_array(void *pdev,const char *propname,const char **out_strs,u64 sz);
++int AX_OSAL_DEV_of_property_count_strings(void *pdev,const char *propname);
++int AX_OSAL_DEV_of_property_read_string_index(void *pdev,const char *propname,int index, const char **output);
++#endif
++bool AX_OSAL_DEV_of_property_read_bool(void *pdev,const char *propname);
++#if 0
++int AX_OSAL_DEV_of_property_read_u8(void *pdev,const char *propname,char *out_value);
++int AX_OSAL_DEV_of_property_read_u16(void *pdev,const char *propname,AX_U16 *out_value);
++#endif
++int AX_OSAL_DEV_of_property_read_u32(void *pdev,const char *propname,unsigned int *out_value);
++int AX_OSAL_DEV_of_property_read_s32(void *pdev,const char *propname,int *out_value);
++
++
++
++void *AX_OSAL_DEV_devm_clk_get(void *pdev, const char *id);
++void AX_OSAL_DEV_devm_clk_put(void *pdev,void *pclk);
++void AX_OSAL_DEV_clk_disable(void *pclk);
++int AX_OSAL_DEV_clk_enable(void *pclk);
++bool AX_OSAL_DEV_clk_is_enabled(void * pclk);
++int AX_OSAL_DEV_clk_prepare_enable(void *pclk);
++int AX_OSAL_DEV_clk_set_rate(void *pclk, unsigned long rate);
++unsigned long AX_OSAL_DEV_clk_get_rate(void *pclk);
++void AX_OSAL_DEV_clk_disable_unprepare(void *pclk);
++
++
++int AX_OSAL_DEV_i2c_write(unsigned char i2c_dev, unsigned char dev_addr,
++                         unsigned int reg_addr, unsigned int reg_addr_num,
++                         unsigned int data, unsigned int data_byte_num);
++
++int AX_OSAL_DEV_i2c_read(unsigned char i2c_dev, unsigned char dev_addr,
++                        unsigned int reg_addr, unsigned int reg_addr_num,
++                        unsigned int *pRegData, unsigned int data_byte_num);
++
++int AX_OSAL_DEV_i2c_dev_init(void);
++void AX_OSAL_DEV_i2c_dev_exit(void);
++
++void *AX_OSAL_DEV_devm_reset_control_get_optional(void *pdev, const char *id, int flag);
++int  AX_OSAL_DEV_reset_control_assert(void *rstc);
++int  AX_OSAL_DEV_reset_control_deassert(void *rstc);
++
++#include <linux/soc/axera/ax_bw_limiter.h>
++int AX_OSAL_DEV_bwlimiter_register_with_clk(unsigned int sub_sys_bw, void *pclk);
++int AX_OSAL_DEV_bwlimiter_register_with_val(unsigned int sub_sys_bw, unsigned int clk);
++int AX_OSAL_DEV_bwlimiter_unregister(unsigned int sub_sys_bw, void *pclk);
++int AX_OSAL_DEV_bwlimiter_refresh_limiter(unsigned int sub_sys_bw);
++
++int AX_OSAL_DEV_pm_opp_of_add_table(void *pdev);
++void AX_OSAL_DEV_pm_opp_of_remove_table(void *pdev);
++int AX_OSAL_DEV_devm_devfreq_add_device(void *pdev,struct AX_DEVFREQ_DEV_PROFILE *ax_profile,const char *governor_name,void *data);
++int AX_OSAL_DEV_pm_opp_of_disable(void * pdev, unsigned long freq);
++void AX_OSAL_DEV_pm_opp_of_remove(void * pdev, unsigned long freq);
++int AX_OSAL_DEV_pm_opp_of_add(void * pdev, unsigned long freq, unsigned long volt);
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif /*__OSAL_DEV_AX__H__*/
+diff -r -u -N drivers/soc/axera/osal/include/osal_kfifo.h b/drivers/soc/axera/osal/include/osal_kfifo.h"
+--- a/drivers/soc/axera/osal/include/osal_kfifo.h	1970-01-01 08:00:00.000000000 +0800
++++ b/drivers/soc/axera/osal/include/osal_kfifo.h	2024-12-04 17:23:53.983795199 +0800
+@@ -0,0 +1,542 @@
++/**************************************************************************************************
++ *
++ * Copyright (c) 2019-2024 Axera Semiconductor Co., Ltd. All Rights Reserved.
++ *
++ * This source file is the property of Axera Semiconductor Co., Ltd. and
++ * may not be copied or distributed in any isomorphic form without the prior
++ * written consent of Axera Semiconductor Co., Ltd.
++ *
++ **************************************************************************************************/
++
++#include <linux/kernel.h>
++#include <linux/slab.h>
++#include <linux/err.h>
++#include <linux/uaccess.h>
++
++struct __ax_kfifo {
++	unsigned int	in;
++	unsigned int	out;
++	unsigned int	mask;
++	unsigned int	esize;
++	void		*data;
++};
++
++
++#define __AX_STRUCT_KFIFO_COMMON(datatype, recsize, ptrtype) \
++	union { \
++		struct __ax_kfifo	kfifo; \
++		datatype	*type; \
++		const datatype	*const_type; \
++		char		(*rectype)[recsize]; \
++		ptrtype		*ptr; \
++		ptrtype const	*ptr_const; \
++	}
++
++#define __AX_STRUCT_KFIFO(type, size, recsize, ptrtype) \
++{ \
++        __AX_STRUCT_KFIFO_COMMON(type, recsize, ptrtype); \
++        type            buf[((size < 2) || (size & (size - 1))) ? -1 : size]; \
++}
++
++#define AX_OSAL_LIB_STRUCT_KFIFO(type, size) \
++        struct __AX_STRUCT_KFIFO(type, size, 0, type)
++
++
++#define __AX_STRUCT_KFIFO_PTR(type, recsize, ptrtype) \
++{ \
++        __AX_STRUCT_KFIFO_COMMON(type, recsize, ptrtype); \
++        type            buf[0]; \
++}
++
++#define AX_OSAL_LIB_STRUCT_KFIFO_PTR(type) \
++        struct __AX_STRUCT_KFIFO_PTR(type, 0, type)
++
++/*
++ * define compatibility "struct kfifo" for dynamic allocated fifos
++ */
++struct kfifo __AX_STRUCT_KFIFO_PTR(unsigned char, 0, void);
++
++#define STRUCT_KFIFO_REC_1(size) \
++	struct __STRUCT_KFIFO(unsigned char, size, 1, void)
++
++#define STRUCT_KFIFO_REC_2(size) \
++	struct __STRUCT_KFIFO(unsigned char, size, 2, void)
++
++/*
++ * define kfifo_rec types
++ */
++//struct kfifo_rec_ptr_1 __STRUCT_KFIFO_PTR(unsigned char, 1, void);
++//struct kfifo_rec_ptr_2 __STRUCT_KFIFO_PTR(unsigned char, 2, void);
++
++/*
++ * helper macro to distinguish between real in place fifo where the fifo
++ * array is a part of the structure and the fifo type where the array is
++ * outside of the fifo structure.
++ */
++#define	__ax_is_kfifo_ptr(fifo) \
++	(sizeof(*fifo) == sizeof(AX_OSAL_LIB_STRUCT_KFIFO_PTR(typeof(*(fifo)->type))))
++
++/**
++ * AX_OSAL_LIB_DECLARE_KFIFO_PTR - macro to declare a fifo pointer object
++ * @fifo: name of the declared fifo
++ * @type: type of the fifo elements
++ */
++#define AX_OSAL_LIB_DECLARE_KFIFO_PTR(fifo, type)	AX_OSAL_LIB_STRUCT_KFIFO_PTR(type) fifo
++
++/**
++ * AX_OSAL_LIB_DECLARE_KFIFO - macro to declare a fifo object
++ * @fifo: name of the declared fifo
++ * @type: type of the fifo elements
++ * @size: the number of elements in the fifo, this must be a power of 2
++ */
++#define AX_OSAL_LIB_DECLARE_KFIFO(fifo, type, size)	 AX_OSAL_LIB_STRUCT_KFIFO(type, size) fifo
++
++/**
++ * AX_OSAL_LIB_INIT_KFIFO - Initialize a fifo declared by DECLARE_KFIFO
++ * @fifo: name of the declared fifo datatype
++ */
++#define AX_OSAL_LIB_INIT_KFIFO(fifo) \
++(void)({ \
++	typeof(&(fifo)) __tmp = &(fifo); \
++	struct __ax_kfifo *__kfifo = &__tmp->kfifo; \
++	__kfifo->in = 0; \
++	__kfifo->out = 0; \
++	__kfifo->mask = __ax_is_kfifo_ptr(__tmp) ? 0 : ARRAY_SIZE(__tmp->buf) - 1;\
++	__kfifo->esize = sizeof(*__tmp->buf); \
++	__kfifo->data = __ax_is_kfifo_ptr(__tmp) ?  NULL : __tmp->buf; \
++})
++
++/**
++ * AX_OSAL_LIB_DEFINE_KFIFO - macro to define and initialize a fifo
++ * @fifo: name of the declared fifo datatype
++ * @type: type of the fifo elements
++ * @size: the number of elements in the fifo, this must be a power of 2
++ *
++ * Note: the macro can be used for global and local fifo data type variables.
++ */
++#define AX_OSAL_LIB_DEFINE_KFIFO(fifo, type, size) \
++	AX_OSAL_LIB_DECLARE_KFIFO(fifo, type, size) = \
++	(typeof(fifo)) { \
++		{ \
++			{ \
++			.in	= 0, \
++			.out	= 0, \
++			.mask	= __ax_is_kfifo_ptr(&(fifo)) ? \
++				  0 : \
++				  ARRAY_SIZE((fifo).buf) - 1, \
++			.esize	= sizeof(*(fifo).buf), \
++			.data	= __ax_is_kfifo_ptr(&(fifo)) ? \
++				NULL : \
++				(fifo).buf, \
++			} \
++		} \
++	}
++
++
++static inline unsigned int __must_check
++__kfifo_uint_must_check_helper(unsigned int val)
++{
++	return val;
++}
++
++static inline int __must_check
++__kfifo_int_must_check_helper(int val)
++{
++	return val;
++}
++
++/**
++ * AX_OSAL_LIB_kfifo_initialized - Check if the fifo is initialized
++ * @fifo: address of the fifo to check
++ *
++ * Return %true if fifo is initialized, otherwise %false.
++ * Assumes the fifo was 0 before.
++ */
++#define AX_OSAL_LIB_kfifo_initialized(fifo) ((fifo)->kfifo.mask)
++
++/**
++ * AX_OSAL_LIB_kfifo_esize - returns the size of the element managed by the fifo
++ * @fifo: address of the fifo to be used
++ */
++#define AX_OSAL_LIB_kfifo_esize(fifo)	((fifo)->kfifo.esize)
++
++/**
++ * AX_OSAL_LIB_kfifo_recsize - returns the size of the record length field
++ * @fifo: address of the fifo to be used
++ */
++#define AX_OSAL_LIB_kfifo_recsize(fifo)	(sizeof(*(fifo)->rectype))
++
++/**
++ * AX_OSAL_LIB_kfifo_size - returns the size of the fifo in elements
++ * @fifo: address of the fifo to be used
++ */
++#define AX_OSAL_LIB_kfifo_size(fifo)	((fifo)->kfifo.mask + 1)
++
++/**
++ * AX_OSAL_LIB_kfifo_reset - removes the entire fifo content
++ * @fifo: address of the fifo to be used
++ *
++ * Note: usage of AX_OSAL_LIB_kfifo_reset() is dangerous. It should be only called when the
++ * fifo is exclusived locked or when it is secured that no other thread is
++ * accessing the fifo.
++ */
++#define AX_OSAL_LIB_kfifo_reset(fifo) \
++(void)({ \
++	typeof((fifo) + 1) __tmp = (fifo); \
++	__tmp->kfifo.in = __tmp->kfifo.out = 0; \
++})
++
++/**
++ * AX_OSAL_LIB_kfifo_reset_out - skip fifo content
++ * @fifo: address of the fifo to be used
++ *
++ * Note: The usage of AX_OSAL_LIB_kfifo_reset_out() is safe until it will be only called
++ * from the reader thread and there is only one concurrent reader. Otherwise
++ * it is dangerous and must be handled in the same way as kfifo_reset().
++ */
++#define AX_OSAL_LIB_kfifo_reset_out(fifo)	\
++(void)({ \
++	typeof((fifo) + 1) __tmp = (fifo); \
++	__tmp->kfifo.out = __tmp->kfifo.in; \
++})
++
++/**
++ * AX_OSAL_LIB_kfifo_len - returns the number of used elements in the fifo
++ * @fifo: address of the fifo to be used
++ */
++#define AX_OSAL_LIB_kfifo_len(fifo) \
++({ \
++	typeof((fifo) + 1) __tmpl = (fifo); \
++	__tmpl->kfifo.in - __tmpl->kfifo.out; \
++})
++
++/**
++ * AX_OSAL_LIB_kfifo_is_empty - returns true if the fifo is empty
++ * @fifo: address of the fifo to be used
++ */
++#define	AX_OSAL_LIB_kfifo_is_empty(fifo) \
++({ \
++	typeof((fifo) + 1) __tmpq = (fifo); \
++	__tmpq->kfifo.in == __tmpq->kfifo.out; \
++})
++
++
++/**
++ * AX_OSAL_LIB_kfifo_is_full - returns true if the fifo is full
++ * @fifo: address of the fifo to be used
++ */
++#define	AX_OSAL_LIB_kfifo_is_full(fifo) \
++({ \
++	typeof((fifo) + 1) __tmpq = (fifo); \
++	AX_OSAL_LIB_kfifo_len(__tmpq) > __tmpq->kfifo.mask; \
++})
++
++/**
++ * AX_OSAL_LIB_kfifo_avail - returns the number of unused elements in the fifo
++ * @fifo: address of the fifo to be used
++ */
++#define	AX_OSAL_LIB_kfifo_avail(fifo) \
++__kfifo_uint_must_check_helper( \
++({ \
++	typeof((fifo) + 1) __tmpq = (fifo); \
++	const size_t __recsize = sizeof(*__tmpq->rectype); \
++	unsigned int __avail = AX_OSAL_LIB_kfifo_size(__tmpq) - AX_OSAL_LIB_kfifo_len(__tmpq); \
++	(__recsize) ? ((__avail <= __recsize) ? 0 : \
++	__ax_kfifo_max_r(__avail - __recsize, __recsize)) : \
++	__avail; \
++}) \
++)
++
++/**
++ * AX_OSAL_LIB_kfifo_skip - skip output data
++ * @fifo: address of the fifo to be used
++ */
++#define	AX_OSAL_LIB_kfifo_skip(fifo) \
++(void)({ \
++	typeof((fifo) + 1) __tmp = (fifo); \
++	const size_t __recsize = sizeof(*__tmp->rectype); \
++	struct __ax_kfifo *__kfifo = &__tmp->kfifo; \
++	if (__recsize) \
++		__ax_kfifo_skip_r(__kfifo, __recsize); \
++	else \
++		__kfifo->out++; \
++})
++
++/**
++ * AX_OSAL_LIB_kfifo_peek_len - gets the size of the next fifo record
++ * @fifo: address of the fifo to be used
++ *
++ * This function returns the size of the next fifo record in number of bytes.
++ */
++#define AX_OSAL_LIB_kfifo_peek_len(fifo) \
++__kfifo_uint_must_check_helper( \
++({ \
++	typeof((fifo) + 1) __tmp = (fifo); \
++	const size_t __recsize = sizeof(*__tmp->rectype); \
++	struct __ax_kfifo *__kfifo = &__tmp->kfifo; \
++	(!__recsize) ?  AX_OSAL_LIB_kfifo_len(__tmp) * sizeof(*__tmp->type) : \
++	__ax_kfifo_len_r(__kfifo, __recsize); \
++}) \
++)
++
++/**
++ * AX_OSAL_LIB_kfifo_alloc - dynamically allocates a new fifo buffer
++ * @fifo: pointer to the fifo
++ * @size: the number of elements in the fifo, this must be a power of 2
++ * @gfp_mask: get_free_pages mask, passed to kmalloc()
++ *
++ * This macro dynamically allocates a new fifo buffer.
++ *
++ * The number of elements will be rounded-up to a power of 2.
++ * The fifo will be release with kfifo_free().
++ * Return 0 if no error, otherwise an error code.
++ */
++#define AX_OSAL_LIB_kfifo_alloc(fifo, size, gfp_mask) \
++__kfifo_int_must_check_helper( \
++({ \
++	typeof((fifo) + 1) __tmp = (fifo); \
++	struct __ax_kfifo *__kfifo = &__tmp->kfifo; \
++	__ax_is_kfifo_ptr(__tmp) ? \
++	__ax_kfifo_alloc(__kfifo, size, sizeof(*__tmp->type), gfp_mask) : \
++	-EINVAL; \
++}) \
++)
++
++/**
++ * AX_OSAL_LIB_kfifo_free - frees the fifo
++ * @fifo: the fifo to be freed
++ */
++#define AX_OSAL_LIB_kfifo_free(fifo) \
++({ \
++	typeof((fifo) + 1) __tmp = (fifo); \
++	struct __ax_kfifo *__kfifo = &__tmp->kfifo; \
++	if (__ax_is_kfifo_ptr(__tmp)) \
++		__ax_kfifo_free(__kfifo); \
++})
++
++/**
++ * AX_OSAL_LIB_kfifo_init - initialize a fifo using a preallocated buffer
++ * @fifo: the fifo to assign the buffer
++ * @buffer: the preallocated buffer to be used
++ * @size: the size of the internal buffer, this have to be a power of 2
++ *
++ * This macro initializes a fifo using a preallocated buffer.
++ *
++ * The number of elements will be rounded-up to a power of 2.
++ * Return 0 if no error, otherwise an error code.
++ */
++#define AX_OSAL_LIB_kfifo_init(fifo, buffer, size) \
++({ \
++	typeof((fifo) + 1) __tmp = (fifo); \
++	struct __ax_kfifo *__kfifo = &__tmp->kfifo; \
++	__ax_is_kfifo_ptr(__tmp) ? \
++	__ax_kfifo_init(__kfifo, buffer, size, sizeof(*__tmp->type)) : \
++	-EINVAL; \
++})
++
++/**
++ * AX_OSAL_LIB_kfifo_put - put data into the fifo
++ * @fifo: address of the fifo to be used
++ * @val: the data to be added
++ *
++ * This macro copies the given value into the fifo.
++ * It returns 0 if the fifo was full. Otherwise it returns the number
++ * processed elements.
++ *
++ * Note that with only one concurrent reader and one concurrent
++ * writer, you don't need extra locking to use these macro.
++ */
++#define	AX_OSAL_LIB_kfifo_put(fifo, val) \
++({ \
++	typeof((fifo) + 1) __tmp = (fifo); \
++	typeof(*__tmp->const_type) __val = (val); \
++	unsigned int __ret; \
++	size_t __recsize = sizeof(*__tmp->rectype); \
++	struct __ax_kfifo *__kfifo = &__tmp->kfifo; \
++	if (__recsize) \
++		__ret = __ax_kfifo_in_r(__kfifo, &__val, sizeof(__val), \
++			__recsize); \
++	else { \
++		__ret = !AX_OSAL_LIB_kfifo_is_full(__tmp); \
++		if (__ret) { \
++			(__ax_is_kfifo_ptr(__tmp) ? \
++			((typeof(__tmp->type))__kfifo->data) : \
++			(__tmp->buf) \
++			)[__kfifo->in & __tmp->kfifo.mask] = \
++				*(typeof(__tmp->type))&__val; \
++			smp_wmb(); \
++			__kfifo->in++; \
++		} \
++	} \
++	__ret; \
++})
++
++/**
++ * AX_OSAL_LIB_kfifo_get - get data from the fifo
++ * @fifo: address of the fifo to be used
++ * @val: address where to store the data
++ *
++ * This macro reads the data from the fifo.
++ * It returns 0 if the fifo was empty. Otherwise it returns the number
++ * processed elements.
++ *
++ * Note that with only one concurrent reader and one concurrent
++ * writer, you don't need extra locking to use these macro.
++ */
++#define	AX_OSAL_LIB_kfifo_get(fifo, val) \
++__kfifo_uint_must_check_helper( \
++({ \
++	typeof((fifo) + 1) __tmp = (fifo); \
++	typeof(__tmp->ptr) __val = (val); \
++	unsigned int __ret; \
++	const size_t __recsize = sizeof(*__tmp->rectype); \
++	struct __ax_kfifo *__kfifo = &__tmp->kfifo; \
++	if (__recsize) \
++		__ret = __ax_kfifo_out_r(__kfifo, __val, sizeof(*__val), \
++			__recsize); \
++	else { \
++		__ret = !AX_OSAL_LIB_kfifo_is_empty(__tmp); \
++		if (__ret) { \
++			*(typeof(__tmp->type))__val = \
++				(__ax_is_kfifo_ptr(__tmp) ? \
++				((typeof(__tmp->type))__kfifo->data) : \
++				(__tmp->buf) \
++				)[__kfifo->out & __tmp->kfifo.mask]; \
++			smp_wmb(); \
++			__kfifo->out++; \
++		} \
++	} \
++	__ret; \
++}) \
++)
++
++/**
++ * AX_OSAL_LIB_kfifo_peek - get data from the fifo without removing
++ * @fifo: address of the fifo to be used
++ * @val: address where to store the data
++ *
++ * This reads the data from the fifo without removing it from the fifo.
++ * It returns 0 if the fifo was empty. Otherwise it returns the number
++ * processed elements.
++ *
++ * Note that with only one concurrent reader and one concurrent
++ * writer, you don't need extra locking to use these macro.
++ */
++#define	AX_OSAL_LIB_kfifo_peek(fifo, val) \
++__kfifo_uint_must_check_helper( \
++({ \
++	typeof((fifo) + 1) __tmp = (fifo); \
++	typeof(__tmp->ptr) __val = (val); \
++	unsigned int __ret; \
++	const size_t __recsize = sizeof(*__tmp->rectype); \
++	struct __ax_kfifo *__kfifo = &__tmp->kfifo; \
++	if (__recsize) \
++		__ret = __ax_kfifo_out_peek_r(__kfifo, __val, sizeof(*__val), \
++			__recsize); \
++	else { \
++		__ret = !AX_OSAL_LIB_kfifo_is_empty(__tmp); \
++		if (__ret) { \
++			*(typeof(__tmp->type))__val = \
++				(__ax_is_kfifo_ptr(__tmp) ? \
++				((typeof(__tmp->type))__kfifo->data) : \
++				(__tmp->buf) \
++				)[__kfifo->out & __tmp->kfifo.mask]; \
++			smp_wmb(); \
++		} \
++	} \
++	__ret; \
++}) \
++)
++
++/**
++ * AX_OSAL_LIB_kfifo_in - put data into the fifo
++ * @fifo: address of the fifo to be used
++ * @buf: the data to be added
++ * @n: number of elements to be added
++ *
++ * This macro copies the given buffer into the fifo and returns the
++ * number of copied elements.
++ *
++ * Note that with only one concurrent reader and one concurrent
++ * writer, you don't need extra locking to use these macro.
++ */
++#define	AX_OSAL_LIB_kfifo_in(fifo, buf, n) \
++({ \
++	typeof((fifo) + 1) __tmp = (fifo); \
++	typeof(__tmp->ptr_const) __buf = (buf); \
++	unsigned long __n = (n); \
++	const size_t __recsize = sizeof(*__tmp->rectype); \
++	struct __ax_kfifo *__kfifo = &__tmp->kfifo; \
++	(__recsize) ?\
++	__ax_kfifo_in_r(__kfifo, __buf, __n, __recsize) : \
++	__ax_kfifo_in(__kfifo, __buf, __n); \
++})
++
++
++/**
++ * kfifo_out - get data from the fifo
++ * @fifo: address of the fifo to be used
++ * @buf: pointer to the storage buffer
++ * @n: max. number of elements to get
++ *
++ * This macro get some data from the fifo and return the numbers of elements
++ * copied.
++ *
++ * Note that with only one concurrent reader and one concurrent
++ * writer, you don't need extra locking to use these macro.
++ */
++#define	AX_OSAL_LIB_kfifo_out(fifo, buf, n) \
++__kfifo_uint_must_check_helper( \
++({ \
++	typeof((fifo) + 1) __tmp = (fifo); \
++	typeof(__tmp->ptr) __buf = (buf); \
++	unsigned long __n = (n); \
++	const size_t __recsize = sizeof(*__tmp->rectype); \
++	struct __ax_kfifo *__kfifo = &__tmp->kfifo; \
++	(__recsize) ?\
++	__ax_kfifo_out_r(__kfifo, __buf, __n, __recsize) : \
++	__ax_kfifo_out(__kfifo, __buf, __n); \
++}) \
++)
++
++/**
++ * kfifo_out_peek - gets some data from the fifo
++ * @fifo: address of the fifo to be used
++ * @buf: pointer to the storage buffer
++ * @n: max. number of elements to get
++ *
++ * This macro get the data from the fifo and return the numbers of elements
++ * copied. The data is not removed from the fifo.
++ *
++ * Note that with only one concurrent reader and one concurrent
++ * writer, you don't need extra locking to use these macro.
++ */
++#define	AX_OSAL_LIB_kfifo_out_peek(fifo, buf, n) \
++__kfifo_uint_must_check_helper( \
++({ \
++	typeof((fifo) + 1) __tmp = (fifo); \
++	typeof(__tmp->ptr) __buf = (buf); \
++	unsigned long __n = (n); \
++	const size_t __recsize = sizeof(*__tmp->rectype); \
++	struct __ax_kfifo *__kfifo = &__tmp->kfifo; \
++	(__recsize) ? \
++	__ax_kfifo_out_peek_r(__kfifo, __buf, __n, __recsize) : \
++	__ax_kfifo_out_peek(__kfifo, __buf, __n); \
++}) \
++)
++
++
++int __ax_kfifo_alloc(struct __ax_kfifo *fifo, unsigned int size,size_t esize, gfp_t gfp_mask);
++void __ax_kfifo_free(struct __ax_kfifo *fifo);
++int __ax_kfifo_init(struct __ax_kfifo *fifo, void *buffer,unsigned int size, size_t esize);
++unsigned int __ax_kfifo_in(struct __ax_kfifo *fifo,const void *buf, unsigned int len);
++unsigned int __ax_kfifo_out_peek(struct __ax_kfifo *fifo,void *buf, unsigned int len);
++unsigned int __ax_kfifo_out(struct __ax_kfifo *fifo,void *buf, unsigned int len);
++int __ax_kfifo_from_user(struct __ax_kfifo *fifo, const void __user *from,unsigned long len, unsigned int *copied);
++unsigned int __ax_kfifo_max_r(unsigned int len, size_t recsize);
++unsigned int __ax_kfifo_len_r(struct __ax_kfifo *fifo, size_t recsize);
++unsigned int __ax_kfifo_in_r(struct __ax_kfifo *fifo, const void *buf,unsigned int len, size_t recsize);
++unsigned int __ax_kfifo_out_peek_r(struct __ax_kfifo *fifo, void *buf,unsigned int len, size_t recsize);
++unsigned int __ax_kfifo_out_r(struct __ax_kfifo *fifo, void *buf,unsigned int len, size_t recsize);
++void __ax_kfifo_skip_r(struct __ax_kfifo *fifo, size_t recsize);
++
+diff -r -u -N drivers/soc/axera/osal/include/osal_lib_ax.h b/drivers/soc/axera/osal/include/osal_lib_ax.h"
+--- a/drivers/soc/axera/osal/include/osal_lib_ax.h	1970-01-01 08:00:00.000000000 +0800
++++ b/drivers/soc/axera/osal/include/osal_lib_ax.h	2024-12-04 17:23:53.983795199 +0800
+@@ -0,0 +1,102 @@
++/**************************************************************************************************
++ *
++ * Copyright (c) 2019-2024 Axera Semiconductor Co., Ltd. All Rights Reserved.
++ *
++ * This source file is the property of Axera Semiconductor Co., Ltd. and
++ * may not be copied or distributed in any isomorphic form without the prior
++ * written consent of Axera Semiconductor Co., Ltd.
++ *
++ **************************************************************************************************/
++
++#ifndef __OSAL_LIBRARY_AX__H__
++#define __OSAL_LIBRARY_AX__H__
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++#include <linux/version.h>
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0))
++#include <linux/stdarg.h>
++#else
++#include <stdarg.h>
++#endif
++#include "osal_type_ax.h"
++#include <linux/types.h>
++
++#define __AX_OSAL_ALIGN_MASK(x, mask) (((x) + (mask)) & ~(mask))
++#define __AX_OSAL_ALIGN(x, a) __AX_OSAL_ALIGN_MASK(x, (typeof(x))(a) - 1)
++#define AX_OSAL_ALIGN(x, a) __AX_OSAL_ALIGN((x), (a))
++#define AX_OSAL_ALIGN_DOWN(x, a) __AX_OSAL_ALIGN((x) - ((a) - 1), (a))
++#define AX_OSAL_IS_ALIGNED(x, a) (((x) & ((typeof(x))(a) - 1)) == 0)
++
++#define AX_OSAL_ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
++
++#define AX_OSAL_abs(x) ((x < 0) ? -x : x)
++#define AX_OSAL_min(x, y) ((x < 0) ? -x : x)
++#define AX_OSAL_max(x, y) ((x < 0) ? -x : x)
++#define AX_OSAL_clamp(val, lo, hi) AX_OSAL_min((typeof(val))AX_OSAL_max(val, lo), hi)
++
++#define AX_OSAL_swap(a, b) { typeof(a) __tmp = (a); (a) = (b); (b) = __tmp; }
++
++char *AX_OSAL_LIB_strcpy(char *dest, const char *src);
++char *AX_OSAL_LIB_strncpy(char *dest, const char *src, int count);
++int AX_OSAL_LIB_strlcpy(char *dest, const char *src, int count);
++char *AX_OSAL_LIB_strcat(char *dest, const char *src);
++char *AX_OSAL_LIB_strncat(char *dest, const char *src, int count);
++int AX_OSAL_LIB_strlcat(char *dest, const char *src, int count);
++int AX_OSAL_LIB_strcmp(const char *cs, const char *ct);
++int AX_OSAL_LIB_strncmp(const char *cs, const char *ct, int count);
++int AX_OSAL_LIB_strnicmp(const char *s1, const char *s2, int len);
++int AX_OSAL_LIB_strcasecmp(const char *s1, const char *s2);
++int AX_OSAL_LIB_strncasecmp(const char *s1, const char *s2, int len);
++char *AX_OSAL_LIB_strchr(const char *s, int c);
++char *AX_OSAL_LIB_strnchr(const char *s, int count, int c);
++char *AX_OSAL_LIB_strrchr(const char *s, int c);
++char *AX_OSAL_LIB_strstr(const char *s1, const char *s2);
++char *AX_OSAL_LIB_strnstr(const char *s1, const char *s2, int len);
++int AX_OSAL_LIB_strlen(const char *s);
++int AX_OSAL_LIB_strnlen(const char *s, int count);
++char *AX_OSAL_LIB_strpbrk(const char *cs, const char *ct);
++char *AX_OSAL_LIB_strsep(const char **s, const char *ct);
++int AX_OSAL_LIB_strspn(const char *s, const char *accept);
++int AX_OSAL_LIB_strcspn(const char *s, const char *reject);
++
++void *AX_OSAL_LIB_memset(void *str, int c, int count);
++void *AX_OSAL_LIB_memmove(void *dest, const void *src, int count);
++void *AX_OSAL_LIB_memscan(void *addr, int c, int seze);
++void *AX_OSAL_LIB_memcpy(void *ct, const void *cs, int count);
++void *AX_OSAL_LIB_memchr(const void *s, int c, int n);
++void *AX_OSAL_LIB_memchar_inv(const void *start, int c, int bytes);
++
++#define AX_VA_LIST va_list
++
++unsigned long AX_OSAL_LIB_simple_strtoull(const char *cp, char **endp, unsigned int base);
++unsigned long AX_OSAL_LIB_simple_strtoul(const char *cp,  char **endp,  unsigned int base);
++long AX_OSAL_LIB_simple_strtol(const char *cp,  char **endp,  unsigned int base);
++long long int AX_OSAL_LIB_simple_strtoll(const char *cp,  char **endp,  unsigned int base);
++int AX_OSAL_LIB_snprintf(char *buf, int size, const char *fmt, ...);
++int AX_OSAL_LIB_scnprintf(char *buf, int size, const char *fmt, ...);
++int AX_OSAL_LIB_sprintf(char *buf, const char *fmt, ...);
++int AX_OSAL_LIB_vsscanf(char *buf, const char *fmt, ...);
++int AX_OSAL_LIB_vsnprintf(char *str, int size, const char *fmt, AX_VA_LIST args);
++
++
++
++unsigned long long int AX_OSAL_LIB_div_u64(unsigned long long int dividend, unsigned int divisor);
++long long int AX_OSAL_LIB_div_s64(long long int dividend, int divisor);
++unsigned long long int AX_OSAL_LIB_div64_u64(unsigned long long int dividend, unsigned long long int divisor);
++long long int AX_OSAL_LIB_LIB_div64_s64(long long int dividend, long long int divisor);
++unsigned long long int AX_OSAL_LIB_div_u64_rem(unsigned long long int dividend, unsigned int divisor);
++long long int AX_OSAL_LIB_div_s64_rem(long long int dividend, int divisor);
++unsigned long long int AX_OSAL_LIB_div64_u64_rem(unsigned long long int dividend, unsigned long long int divisor);
++unsigned int AX_OSAL_LIB_random(void);
++
++void AX_OSAL_LIB_sort_r(void *base, size_t num, size_t size,cmp_r_func_t cmp_func,swap_func_t swap_func,const void *priv);
++void AX_OSAL_LIB_sort(void *base, size_t num, size_t size,cmp_func_t cmp_func,swap_func_t swap_func);
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif /*__OSAL_LIBRARY_AX__H__*/
++
+diff -r -u -N drivers/soc/axera/osal/include/osal_list_ax.h b/drivers/soc/axera/osal/include/osal_list_ax.h"
+--- a/drivers/soc/axera/osal/include/osal_list_ax.h	1970-01-01 08:00:00.000000000 +0800
++++ b/drivers/soc/axera/osal/include/osal_list_ax.h	2024-12-04 17:23:53.983795199 +0800
+@@ -0,0 +1,484 @@
++/**************************************************************************************************
++ *
++ * Copyright (c) 2019-2024 Axera Semiconductor Co., Ltd. All Rights Reserved.
++ *
++ * This source file is the property of Axera Semiconductor Co., Ltd. and
++ * may not be copied or distributed in any isomorphic form without the prior
++ * written consent of Axera Semiconductor Co., Ltd.
++ *
++ **************************************************************************************************/
++
++#ifndef __OSAL_LIST_AX__H__
++#define __OSAL_LIST_AX__H__
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++#include "osal_type_ax.h"
++
++
++//list api
++typedef struct AX_LIST_HEAD {
++    struct AX_LIST_HEAD *next, *prev;
++} AX_LIST_HEAD_T;
++#define AX_OSAL_LIST_HEAD_INIT(name) { &(name), &(name) }
++
++#define AX_OSAL_LIST_HEAD(name) \
++    struct AX_LIST_HEAD name = AX_OSAL_LIST_HEAD_INIT(name)
++
++static inline void AX_OSAL_LIB_init_list_head(struct AX_LIST_HEAD *list)
++{
++    list->next = list;
++    list->prev = list;
++}
++
++
++/*
++ * Insert a new entry between two known consecutive entries.
++ *
++ * This is only for internal list manipulation where we know
++ * the prev/next entries already!
++ */
++static inline void AX_OSAL___list_add(struct AX_LIST_HEAD *_new, struct AX_LIST_HEAD *_prev, struct AX_LIST_HEAD *_next)
++{
++    _next->prev = _new;
++    _new->next = _next;
++    _new->prev = _prev;
++    _prev->next = _new;
++}
++
++/**
++ * list_add - add a new entry
++ * @new: new entry to be added
++ * @head: list head to add it after
++ *
++ * Insert a new entry after the specified head.
++ * This is good for implementing stacks.
++ */
++static inline void AX_OSAL_LIB_list_add(struct AX_LIST_HEAD *_new, struct AX_LIST_HEAD *_head)
++{
++    AX_OSAL___list_add(_new, _head, _head->next);
++}
++
++/**
++ * list_add_tail - add a new entry
++ * @new: new entry to be added
++ * @head: list head to add it before
++ *
++ * Insert a new entry before the specified head.
++ * This is useful for implementing queues.
++ */
++static inline void AX_OSAL_LIB_list_add_tail(struct AX_LIST_HEAD *_new, struct AX_LIST_HEAD *_head)
++{
++    AX_OSAL___list_add(_new, _head->prev, _head);
++}
++
++/*
++ * Delete a list entry by making the prev/next entries
++ * point to each other.
++ *
++ * This is only for internal list manipulation where we know
++ * the prev/next entries already!
++ */
++static inline void AX_OSAL___list_del(struct AX_LIST_HEAD *_prev, struct AX_LIST_HEAD *_next)
++{
++    _next->prev = _prev;
++    _prev->next = _next;
++}
++
++/**
++ * list_del - deletes entry from list.
++ * @entry: the element to delete from the list.
++ * Note: list_empty() on entry does not return true after this, the entry is
++ * in an undefined state.
++ */
++static inline void AX_OSAL___list_del_entry(struct AX_LIST_HEAD *_entry)
++{
++    AX_OSAL___list_del(_entry->prev, _entry->next);
++}
++
++#define AX_OSAL_LIST_POISON1  ((void *) 0x00100100)
++#define AX_OSAL_LIST_POISON2  ((void *) 0x00200200)
++
++
++static inline void AX_OSAL_LIB_list_del(struct AX_LIST_HEAD *_entry)
++{
++    AX_OSAL___list_del(_entry->prev, _entry->next);
++    _entry->next = (struct AX_LIST_HEAD *)AX_OSAL_LIST_POISON1;
++    _entry->prev = (struct AX_LIST_HEAD *)AX_OSAL_LIST_POISON2;
++}
++
++
++/**
++ * list_replace - replace old entry by new one
++ * @old : the element to be replaced
++ * @new : the new element to insert
++ *
++ * If @old was empty, it will be overwritten.
++ */
++static inline void AX_OSAL_LIB_list_replace(struct AX_LIST_HEAD *_old, struct AX_LIST_HEAD *_new)
++{
++    _new->next = _old->next;
++    _new->next->prev = _new;
++    _new->prev = _old->prev;
++    _new->prev->next = _new;
++}
++
++static inline void AX_OSAL_LIB_list_replace_init(struct AX_LIST_HEAD *_old, struct AX_LIST_HEAD *_new)
++{
++    AX_OSAL_LIB_list_replace(_old, _new);
++    AX_OSAL_LIB_init_list_head(_old);
++}
++
++/**
++ * list_del_init - deletes entry from list and reinitialize it.
++ * @entry: the element to delete from the list.
++ */
++static inline void AX_OSAL_LIB_list_del_init(struct AX_LIST_HEAD *_entry)
++{
++    AX_OSAL___list_del_entry(_entry);
++    AX_OSAL_LIB_init_list_head(_entry);
++}
++
++/**
++ * list_move - delete from one list and add as another's head
++ * @list: the entry to move
++ * @head: the head that will precede our entry
++ */
++static inline void AX_OSAL_LIB_list_move(struct AX_LIST_HEAD *_list, struct AX_LIST_HEAD *_head)
++{
++    AX_OSAL___list_del_entry(_list);
++    AX_OSAL_LIB_list_add(_list, _head);
++}
++
++/**
++ * list_move_tail - delete from one list and add as another's tail
++ * @list: the entry to move
++ * @head: the head that will follow our entry
++ */
++static inline void AX_OSAL_LIB_list_move_tail(struct AX_LIST_HEAD *_list, struct AX_LIST_HEAD *_head)
++{
++    AX_OSAL___list_del_entry(_list);
++    AX_OSAL_LIB_list_add_tail(_list, _head);
++}
++
++/**
++ * list_is_last - tests whether @list is the last entry in list @head
++ * @list: the entry to test
++ * @head: the head of the list
++ */
++static inline int AX_OSAL_LIB_list_is_last(struct AX_LIST_HEAD *_list, struct AX_LIST_HEAD *_head)
++{
++    return _list->next == _head;
++}
++
++/**
++ * list_empty - tests whether a list is empty
++ * @head: the list to test.
++ */
++static inline int AX_OSAL_LIB_list_empty(struct AX_LIST_HEAD *_head)
++{
++    return _head->next == _head;
++}
++
++/**
++ * list_rotate_left - rotate the list to the left
++ * @head: the head of the list
++ */
++static inline void AX_OSAL_LIB_list_rotate_left(struct AX_LIST_HEAD *_head)
++{
++    struct AX_LIST_HEAD *first;
++
++    if (!AX_OSAL_LIB_list_empty(_head)) {
++        first = _head->next;
++        AX_OSAL_LIB_list_move_tail(first, _head);
++    }
++}
++
++static inline void AX_OSAL___list_splice(const struct AX_LIST_HEAD *_list,
++        struct AX_LIST_HEAD *_prev,
++        struct AX_LIST_HEAD *_next)
++{
++    struct AX_LIST_HEAD *first = _list->next;
++    struct AX_LIST_HEAD *last = _list->prev;
++
++    first->prev = _prev;
++    _prev->next = first;
++
++    last->next = _next;
++    _next->prev = last;
++}
++
++/**
++ * list_splice - join two lists, this is designed for stacks
++ * @list: the new list to add.
++ * @head: the place to add it in the first list.
++ */
++static inline void AX_OSAL_LIB_list_splice(struct AX_LIST_HEAD *_list, struct AX_LIST_HEAD *_head)
++{
++    if (!AX_OSAL_LIB_list_empty(_list))
++        AX_OSAL___list_splice(_list, _head, _head->next);
++}
++
++/**
++ * list_splice_tail - join two lists, each list being a queue
++ * @list: the new list to add.
++ * @head: the place to add it in the first list.
++ */
++static inline void AX_OSAL_LIB_list_splice_tail(struct AX_LIST_HEAD *_list, struct AX_LIST_HEAD *_head)
++{
++    if (!AX_OSAL_LIB_list_empty(_list))
++        AX_OSAL___list_splice(_list, _head->prev, _head);
++}
++
++/**
++ * list_splice_init - join two lists and reinitialise the emptied list.
++ * @list: the new list to add.
++ * @head: the place to add it in the first list.
++ *
++ * The list at @list is reinitialised
++ */
++static inline void AX_OSAL_LIB_list_splice_init(struct AX_LIST_HEAD *_list, struct AX_LIST_HEAD *_head)
++{
++    if (!AX_OSAL_LIB_list_empty(_list)) {
++        AX_OSAL___list_splice(_list, _head, _head->next);
++        AX_OSAL_LIB_init_list_head(_list);
++    }
++}
++
++/**
++ * list_splice_tail_init - join two lists and reinitialise the emptied list
++ * @list: the new list to add.
++ * @head: the place to add it in the first list.
++ *
++ * Each of the lists is a queue.
++ * The list at @list is reinitialised
++ */
++static inline void AX_OSAL_LIB_list_splice_tail_init(struct AX_LIST_HEAD *_list, struct AX_LIST_HEAD *_head)
++{
++    if (!AX_OSAL_LIB_list_empty(_list)) {
++        AX_OSAL___list_splice(_list, _head->prev, _head);
++        AX_OSAL_LIB_init_list_head(_list);
++    }
++}
++
++#define AX_OSAL_offsetof(TYPE, MEMBER)  ((size_t)&((TYPE *)0)->MEMBER)
++
++#define AX_OSAL_container_of(ptr, type, member) ({          \
++    const typeof( ((type *)0)->member ) *__mptr = (ptr);    \
++    (type *)( (char *)__mptr - AX_OSAL_offsetof(type,member) );})
++
++
++/**
++ * list_entry - get the struct for this entry
++ * @ptr:    the &struct list_head pointer.
++ * @type:    the type of the struct this is embedded in.
++ * @member:    the name of the list_struct within the struct.
++ */
++#define AX_OSAL_LIB_list_entry(ptr, type, member) \
++    AX_OSAL_container_of(ptr, type, member)
++
++/**
++ * list_first_entry - get the first element from a list
++ * @ptr:    the list head to take the element from.
++ * @type:    the type of the struct this is embedded in.
++ * @member:    the name of the list_struct within the struct.
++ *
++ * Note, that list is expected to be not empty.
++ */
++#define AX_OSAL_LIB_list_first_entry(ptr, type, member) \
++    AX_OSAL_LIB_list_entry((ptr)->next, type, member)
++
++/**
++ * list_for_each    -    iterate over a list
++ * @pos:    the &struct list_head to use as a loop cursor.
++ * @head:    the head for your list.
++ */
++#define AX_OSAL_LIB_list_for_each(pos, head) \
++    for (pos = (head)->next; pos != (head); pos = pos->next)
++
++
++/**
++ * list_for_each_prev    -    iterate over a list backwards
++ * @pos:    the &struct list_head to use as a loop cursor.
++ * @head:    the head for your list.
++ */
++#define AX_OSAL_LIB_list_for_each_prev(pos, head) \
++    for (pos = (head)->prev; pos != (head); pos = pos->prev)
++
++/**
++ * list_for_each_safe - iterate over a list safe against removal of list entry
++ * @pos:    the &struct list_head to use as a loop cursor.
++ * @n:        another &struct list_head to use as temporary storage
++ * @head:    the head for your list.
++ */
++#define AX_OSAL_LIB_list_for_each_safe(pos, n, head) \
++    for (pos = (head)->next, n = pos->next; pos != (head); \
++        pos = n, n = pos->next)
++
++/**
++ * list_for_each_prev_safe - iterate over a list backwards safe against removal of list entry
++ * @pos:    the &struct list_head to use as a loop cursor.
++ * @n:        another &struct list_head to use as temporary storage
++ * @head:    the head for your list.
++ */
++#define AX_OSAL_LIB_list_for_each_prev_safe(pos, n, head) \
++    for (pos = (head)->prev, n = pos->prev; \
++         pos != (head); \
++         pos = n, n = pos->prev)
++
++/**
++ * list_for_each_entry    -    iterate over list of given type
++ * @pos:    the type * to use as a loop cursor.
++ * @head:    the head for your list.
++ * @member:    the name of the list_struct within the struct.
++ */
++#define AX_OSAL_LIB_list_for_each_entry(pos, head, member) \
++    for (pos = AX_OSAL_LIB_list_entry((head)->next, typeof(*pos), member);    \
++         &pos->member != (head);     \
++         pos = AX_OSAL_LIB_list_entry(pos->member.next, typeof(*pos), member))
++
++/**
++ * list_for_each_entry_reverse - iterate backwards over list of given type.
++ * @pos:    the type * to use as a loop cursor.
++ * @head:    the head for your list.
++ * @member:    the name of the list_struct within the struct.
++ */
++#define AX_OSAL_LIB_list_for_each_entry_reverse(pos, head, member) \
++    for (pos = AX_OSAL_LIB_list_entry((head)->prev, typeof(*pos), member);    \
++         &pos->member != (head);     \
++         pos = AX_OSAL_LIB_list_entry(pos->member.prev, typeof(*pos), member))
++
++/**
++ * list_prepare_entry - prepare a pos entry for use in list_for_each_entry_continue()
++ * @pos:    the type * to use as a start point
++ * @head:    the head of the list
++ * @member:    the name of the list_struct within the struct.
++ *
++ * Prepares a pos entry for use as a start point in list_for_each_entry_continue().
++ */
++#define AX_OSAL_LIB_list_prepare_entry(pos, head, member) \
++    ((pos) ? : AX_OSAL_LIB_list_entry(head, typeof(*pos), member))
++
++/**
++ * list_for_each_entry_continue - continue iteration over list of given type
++ * @pos:    the type * to use as a loop cursor.
++ * @head:    the head for your list.
++ * @member:    the name of the list_struct within the struct.
++ *
++ * Continue to iterate over list of given type, continuing after
++ * the current position.
++ */
++#define AX_OSAL_LIB_list_for_each_entry_continue(pos, head, member) \
++    for (pos = AX_OSAL_LIB_list_entry(pos->member.next, typeof(*pos), member);    \
++         &pos->member != (head);    \
++         pos = AX_OSAL_LIB_list_entry(pos->member.next, typeof(*pos), member))
++
++/**
++ * list_for_each_entry_continue_reverse - iterate backwards from the given point
++ * @pos:    the type * to use as a loop cursor.
++ * @head:    the head for your list.
++ * @member:    the name of the list_struct within the struct.
++ *
++ * Start to iterate over list of given type backwards, continuing after
++ * the current position.
++ */
++#define AX_OSAL_LIB_list_for_each_entry_continue_reverse(pos, head, member) \
++    for (pos = AX_OSAL_LIB_list_entry(pos->member.prev, typeof(*pos), member);    \
++         &pos->member != (head);    \
++         pos = AX_OSAL_LIB_list_entry(pos->member.prev, typeof(*pos), member))
++
++/**
++ * list_for_each_entry_from - iterate over list of given type from the current point
++ * @pos:    the type * to use as a loop cursor.
++ * @head:    the head for your list.
++ * @member:    the name of the list_struct within the struct.
++ *
++ * Iterate over list of given type, continuing from current position.
++ */
++#define AX_OSAL_LIB_list_for_each_entry_from(pos, head, member) \
++    for (; &pos->member != (head);    \
++         pos = AX_OSAL_LIB_list_entry(pos->member.next, typeof(*pos), member))
++
++/**
++ * list_for_each_entry_safe - iterate over list of given type safe against removal of list entry
++ * @pos:    the type * to use as a loop cursor.
++ * @n:        another type * to use as temporary storage
++ * @head:    the head for your list.
++ * @member:    the name of the list_struct within the struct.
++ */
++#define AX_OSAL_LIB_list_for_each_entry_safe(pos, n, head, member) \
++    for (pos = AX_OSAL_LIB_list_entry((head)->next, typeof(*pos), member),    \
++        n = AX_OSAL_LIB_list_entry(pos->member.next, typeof(*pos), member);    \
++         &pos->member != (head);                     \
++         pos = n, n = AX_OSAL_LIB_list_entry(n->member.next, typeof(*n), member))
++
++/**
++ * list_for_each_entry_safe_continue - continue list iteration safe against removal
++ * @pos:    the type * to use as a loop cursor.
++ * @n:        another type * to use as temporary storage
++ * @head:    the head for your list.
++ * @member:    the name of the list_struct within the struct.
++ *
++ * Iterate over list of given type, continuing after current point,
++ * safe against removal of list entry.
++ */
++#define AX_OSAL_LIB_list_for_each_entry_safe_continue(pos, n, head, member) \
++    for (pos = AX_OSAL_LIB_list_entry(pos->member.next, typeof(*pos), member),         \
++        n = AX_OSAL_LIB_list_entry(pos->member.next, typeof(*pos), member);        \
++         &pos->member != (head);                        \
++         pos = n, n = AX_OSAL_LIB_list_entry(n->member.next, typeof(*n), member))
++
++/**
++ * list_for_each_entry_safe_from - iterate over list from current point safe against removal
++ * @pos:    the type * to use as a loop cursor.
++ * @n:        another type * to use as temporary storage
++ * @head:    the head for your list.
++ * @member:    the name of the list_struct within the struct.
++ *
++ * Iterate over list of given type from current point, safe against
++ * removal of list entry.
++ */
++#define AX_OSAL_LIB_list_for_each_entry_safe_from(pos, n, head, member) \
++    for (n = AX_OSAL_LIB_list_entry(pos->member.next, typeof(*pos), member);        \
++         &pos->member != (head);                        \
++         pos = n, n = AX_OSAL_LIB_list_entry(n->member.next, typeof(*n), member))
++
++/**
++ * list_for_each_entry_safe_reverse - iterate backwards over list safe against removal
++ * @pos:    the type * to use as a loop cursor.
++ * @n:        another type * to use as temporary storage
++ * @head:    the head for your list.
++ * @member:    the name of the list_struct within the struct.
++ *
++ * Iterate backwards over list of given type, safe against removal
++ * of list entry.
++ */
++#define AX_OSAL_LIB_list_for_each_entry_safe_reverse(pos, n, head, member) \
++    for (pos = AX_OSAL_LIB_list_entry((head)->prev, typeof(*pos), member),    \
++        n = AX_OSAL_LIB_list_entry(pos->member.prev, typeof(*pos), member);    \
++         &pos->member != (head);                     \
++         pos = n, n = AX_OSAL_LIB_list_entry(n->member.prev, typeof(*n), member))
++
++/**
++ * list_safe_reset_next - reset a stale list_for_each_entry_safe loop
++ * @pos:    the loop cursor used in the list_for_each_entry_safe loop
++ * @n:        temporary storage used in list_for_each_entry_safe
++ * @member:    the name of the list_struct within the struct.
++ *
++ * list_safe_reset_next is not safe to use in general if the list may be
++ * modified concurrently (eg. the lock is dropped in the loop body). An
++ * exception to this is if the cursor element (pos) is pinned in the list,
++ * and list_safe_reset_next is called after re-taking the lock and before
++ * completing the current iteration of the loop body.
++ */
++#define AX_OSAL_LIB_list_safe_reset_next(pos, n, member) \
++    n = AX_OSAL_LIB_list_entry(pos->member.next, typeof(*pos), member)
++
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif /*__OSAL_LIST_AX__H__*/
+diff -r -u -N drivers/soc/axera/osal/include/osal_list.h b/drivers/soc/axera/osal/include/osal_list.h"
+--- a/drivers/soc/axera/osal/include/osal_list.h	1970-01-01 08:00:00.000000000 +0800
++++ b/drivers/soc/axera/osal/include/osal_list.h	2024-12-04 17:23:53.983795199 +0800
+@@ -0,0 +1,722 @@
++/**************************************************************************************************
++ *
++ * Copyright (c) 2019-2024 Axera Semiconductor Co., Ltd. All Rights Reserved.
++ *
++ * This source file is the property of Axera Semiconductor Co., Ltd. and
++ * may not be copied or distributed in any isomorphic form without the prior
++ * written consent of Axera Semiconductor Co., Ltd.
++ *
++ **************************************************************************************************/
++
++#ifndef _OSAL_LIST_H
++#define _OSAL_LIST_H
++
++#define OSAL_NULL (0)
++
++/*
++ * Simple doubly linked list implementation.
++ *
++ * Some of the internal functions ("__xxx") are useful when
++ * manipulating whole lists rather than single entries, as
++ * sometimes we already know the next/prev entries and we can
++ * generate better code by using them directly rather than
++ * using the generic single-entry routines.
++ */
++
++struct osal_list_head {
++	struct osal_list_head *next, *prev;
++};
++#define OSAL_LIST_HEAD_INIT(name) { &(name), &(name) }
++
++#define OSAL_LIST_HEAD(name) \
++    struct osal_list_head name = OSAL_LIST_HEAD_INIT(name)
++
++static inline void OSAL_INIT_LIST_HEAD(struct osal_list_head *list)
++{
++	list->next = list;
++	list->prev = list;
++}
++
++/*
++ * Insert a new entry between two known consecutive entries.
++ *
++ * This is only for internal list manipulation where we know
++ * the prev/next entries already!
++ */
++static inline void osal___list_add(struct osal_list_head *new, struct osal_list_head *prev, struct osal_list_head *next)
++{
++	next->prev = new;
++	new->next = next;
++	new->prev = prev;
++	prev->next = new;
++}
++
++/**
++ * list_add - add a new entry
++ * @new: new entry to be added
++ * @head: list head to add it after
++ *
++ * Insert a new entry after the specified head.
++ * This is good for implementing stacks.
++ */
++static inline void osal_list_add(struct osal_list_head *new, struct osal_list_head *head)
++{
++	osal___list_add(new, head, head->next);
++}
++
++/**
++ * list_add_tail - add a new entry
++ * @new: new entry to be added
++ * @head: list head to add it before
++ *
++ * Insert a new entry before the specified head.
++ * This is useful for implementing queues.
++ */
++static inline void osal_list_add_tail(struct osal_list_head *new, struct osal_list_head *head)
++{
++	osal___list_add(new, head->prev, head);
++}
++
++/*
++ * Delete a list entry by making the prev/next entries
++ * point to each other.
++ *
++ * This is only for internal list manipulation where we know
++ * the prev/next entries already!
++ */
++static inline void osal___list_del(struct osal_list_head *prev, struct osal_list_head *next)
++{
++	next->prev = prev;
++	prev->next = next;
++}
++
++/**
++ * list_del - deletes entry from list.
++ * @entry: the element to delete from the list.
++ * Note: list_empty() on entry does not return true after this, the entry is
++ * in an undefined state.
++ */
++static inline void osal___list_del_entry(struct osal_list_head *entry)
++{
++	osal___list_del(entry->prev, entry->next);
++}
++
++#define OSAL_LIST_POISON1  ((void *) 0x00100100)
++#define OSAL_LIST_POISON2  ((void *) 0x00200200)
++
++static inline void osal_list_del(struct osal_list_head *entry)
++{
++	osal___list_del(entry->prev, entry->next);
++	entry->next = OSAL_LIST_POISON1;
++	entry->prev = OSAL_LIST_POISON2;
++}
++
++/**
++ * list_replace - replace old entry by new one
++ * @old : the element to be replaced
++ * @new : the new element to insert
++ *
++ * If @old was empty, it will be overwritten.
++ */
++static inline void osal_list_replace(struct osal_list_head *old, struct osal_list_head *new)
++{
++	new->next = old->next;
++	new->next->prev = new;
++	new->prev = old->prev;
++	new->prev->next = new;
++}
++
++static inline void osal_list_replace_init(struct osal_list_head *old, struct osal_list_head *new)
++{
++	osal_list_replace(old, new);
++	OSAL_INIT_LIST_HEAD(old);
++}
++
++/**
++ * list_del_init - deletes entry from list and reinitialize it.
++ * @entry: the element to delete from the list.
++ */
++static inline void osal_list_del_init(struct osal_list_head *entry)
++{
++	osal___list_del_entry(entry);
++	OSAL_INIT_LIST_HEAD(entry);
++}
++
++/**
++ * list_move - delete from one list and add as another's head
++ * @list: the entry to move
++ * @head: the head that will precede our entry
++ */
++static inline void osal_list_move(struct osal_list_head *list, struct osal_list_head *head)
++{
++	osal___list_del_entry(list);
++	osal_list_add(list, head);
++}
++
++/**
++ * list_move_tail - delete from one list and add as another's tail
++ * @list: the entry to move
++ * @head: the head that will follow our entry
++ */
++static inline void osal_list_move_tail(struct osal_list_head *list, struct osal_list_head *head)
++{
++	osal___list_del_entry(list);
++	osal_list_add_tail(list, head);
++}
++
++/**
++ * list_is_last - tests whether @list is the last entry in list @head
++ * @list: the entry to test
++ * @head: the head of the list
++ */
++static inline int osal_list_is_last(const struct osal_list_head *list, const struct osal_list_head *head)
++{
++	return list->next == head;
++}
++
++/**
++ * list_empty - tests whether a list is empty
++ * @head: the list to test.
++ */
++static inline int osal_list_empty(const struct osal_list_head *head)
++{
++	return head->next == head;
++}
++
++/**
++ * list_empty_careful - tests whether a list is empty and not being modified
++ * @head: the list to test
++ *
++ * Description:
++ * tests whether a list is empty _and_ checks that no other CPU might be
++ * in the process of modifying either member (next or prev)
++ *
++ * NOTE: using list_empty_careful() without synchronization
++ * can only be safe if the only activity that can happen
++ * to the list entry is list_del_init(). Eg. it cannot be used
++ * if another CPU could re-list_add() it.
++ */
++static inline int osal_list_empty_careful(const struct osal_list_head *head)
++{
++	struct osal_list_head *next = head->next;
++	return (next == head) && (next == head->prev);
++}
++
++/**
++ * list_rotate_left - rotate the list to the left
++ * @head: the head of the list
++ */
++static inline void osal_list_rotate_left(struct osal_list_head *head)
++{
++	struct osal_list_head *first;
++
++	if (!osal_list_empty(head)) {
++		first = head->next;
++		osal_list_move_tail(first, head);
++	}
++}
++
++/**
++ * list_is_singular - tests whether a list has just one entry.
++ * @head: the list to test.
++ */
++static inline int osal_list_is_singular(const struct osal_list_head *head)
++{
++	return !osal_list_empty(head) && (head->next == head->prev);
++}
++
++static inline void osal___list_cut_position(struct osal_list_head *list,
++					    struct osal_list_head *head, struct osal_list_head *entry)
++{
++	struct osal_list_head *new_first = entry->next;
++	list->next = head->next;
++	list->next->prev = list;
++	list->prev = entry;
++	entry->next = list;
++	head->next = new_first;
++	new_first->prev = head;
++}
++
++/**
++ * list_cut_position - cut a list into two
++ * @list: a new list to add all removed entries
++ * @head: a list with entries
++ * @entry: an entry within head, could be the head itself
++ *    and if so we won't cut the list
++ *
++ * This helper moves the initial part of @head, up to and
++ * including @entry, from @head to @list. You should
++ * pass on @entry an element you know is on @head. @list
++ * should be an empty list or a list you do not care about
++ * losing its data.
++ *
++ */
++static inline void osal_list_cut_position(struct osal_list_head *list,
++					  struct osal_list_head *head, struct osal_list_head *entry)
++{
++	if (osal_list_empty(head))
++		return;
++	if (osal_list_is_singular(head) && (head->next != entry && head != entry))
++		return;
++	if (entry == head)
++		OSAL_INIT_LIST_HEAD(list);
++	else
++		osal___list_cut_position(list, head, entry);
++}
++
++static inline void osal___list_splice(const struct osal_list_head *list,
++				      struct osal_list_head *prev, struct osal_list_head *next)
++{
++	struct osal_list_head *first = list->next;
++	struct osal_list_head *last = list->prev;
++
++	first->prev = prev;
++	prev->next = first;
++
++	last->next = next;
++	next->prev = last;
++}
++
++/**
++ * list_splice - join two lists, this is designed for stacks
++ * @list: the new list to add.
++ * @head: the place to add it in the first list.
++ */
++static inline void osal_list_splice(const struct osal_list_head *list, struct osal_list_head *head)
++{
++	if (!osal_list_empty(list))
++		osal___list_splice(list, head, head->next);
++}
++
++/**
++ * list_splice_tail - join two lists, each list being a queue
++ * @list: the new list to add.
++ * @head: the place to add it in the first list.
++ */
++static inline void osal_list_splice_tail(struct osal_list_head *list, struct osal_list_head *head)
++{
++	if (!osal_list_empty(list))
++		osal___list_splice(list, head->prev, head);
++}
++
++/**
++ * list_splice_init - join two lists and reinitialise the emptied list.
++ * @list: the new list to add.
++ * @head: the place to add it in the first list.
++ *
++ * The list at @list is reinitialised
++ */
++static inline void osal_list_splice_init(struct osal_list_head *list, struct osal_list_head *head)
++{
++	if (!osal_list_empty(list)) {
++		osal___list_splice(list, head, head->next);
++		OSAL_INIT_LIST_HEAD(list);
++	}
++}
++
++/**
++ * list_splice_tail_init - join two lists and reinitialise the emptied list
++ * @list: the new list to add.
++ * @head: the place to add it in the first list.
++ *
++ * Each of the lists is a queue.
++ * The list at @list is reinitialised
++ */
++static inline void osal_list_splice_tail_init(struct osal_list_head *list, struct osal_list_head *head)
++{
++	if (!osal_list_empty(list)) {
++		osal___list_splice(list, head->prev, head);
++		OSAL_INIT_LIST_HEAD(list);
++	}
++}
++
++#undef osal_offsetof
++#ifdef __compiler_offsetof
++#define osal_offsetof(TYPE,MEMBER) __compiler_offsetof(TYPE,MEMBER)
++#else
++#define osal_offsetof(TYPE, MEMBER) ((int)(unsigned long) &((TYPE *)0)->MEMBER)
++#endif
++
++#define osal_container_of(ptr, type, member) ({          \
++    const __typeof__( ((type *)0)->member ) *__mptr = (ptr);    \
++    (type *)( (char *)__mptr - osal_offsetof(type,member) );})
++
++/**
++ * list_entry - get the struct for this entry
++ * @ptr:    the &struct list_head pointer.
++ * @type:    the type of the struct this is embedded in.
++ * @member:    the name of the list_struct within the struct.
++ */
++#define osal_list_entry(ptr, type, member) \
++    osal_container_of(ptr, type, member)
++
++/**
++ * list_first_entry - get the first element from a list
++ * @ptr:    the list head to take the element from.
++ * @type:    the type of the struct this is embedded in.
++ * @member:    the name of the list_struct within the struct.
++ *
++ * Note, that list is expected to be not empty.
++ */
++#define osal_list_first_entry(ptr, type, member) \
++    osal_list_entry((ptr)->next, type, member)
++
++/**
++ * list_for_each    -    iterate over a list
++ * @pos:    the &struct list_head to use as a loop cursor.
++ * @head:    the head for your list.
++ */
++#define osal_list_for_each(pos, head) \
++    for (pos = (head)->next; pos != (head); pos = pos->next)
++
++/**
++ * __list_for_each    -    iterate over a list
++ * @pos:    the &struct list_head to use as a loop cursor.
++ * @head:    the head for your list.
++ *
++ * This variant doesn't differ from list_for_each() any more.
++ * We don't do prefetching in either case.
++ */
++#define osal___list_for_each(pos, head) \
++    for (pos = (head)->next; pos != (head); pos = pos->next)
++
++/**
++ * list_for_each_prev    -    iterate over a list backwards
++ * @pos:    the &struct list_head to use as a loop cursor.
++ * @head:    the head for your list.
++ */
++#define osal_list_for_each_prev(pos, head) \
++    for (pos = (head)->prev; pos != (head); pos = pos->prev)
++
++/**
++ * list_for_each_safe - iterate over a list safe against removal of list entry
++ * @pos:    the &struct list_head to use as a loop cursor.
++ * @n:        another &struct list_head to use as temporary storage
++ * @head:    the head for your list.
++ */
++#define osal_list_for_each_safe(pos, n, head) \
++    for (pos = (head)->next, n = pos->next; pos != (head); \
++        pos = n, n = pos->next)
++
++/**
++ * list_for_each_prev_safe - iterate over a list backwards safe against removal of list entry
++ * @pos:    the &struct list_head to use as a loop cursor.
++ * @n:        another &struct list_head to use as temporary storage
++ * @head:    the head for your list.
++ */
++#define osal_list_for_each_prev_safe(pos, n, head) \
++    for (pos = (head)->prev, n = pos->prev; \
++         pos != (head); \
++         pos = n, n = pos->prev)
++
++/**
++ * list_for_each_entry    -    iterate over list of given type
++ * @pos:    the type * to use as a loop cursor.
++ * @head:    the head for your list.
++ * @member:    the name of the list_struct within the struct.
++ */
++#define osal_list_for_each_entry(pos, head, member)                \
++    for (pos = osal_list_entry((head)->next, __typeof__(*pos), member);    \
++         &pos->member != (head);     \
++         pos = osal_list_entry(pos->member.next, __typeof__(*pos), member))
++
++/**
++ * list_for_each_entry_reverse - iterate backwards over list of given type.
++ * @pos:    the type * to use as a loop cursor.
++ * @head:    the head for your list.
++ * @member:    the name of the list_struct within the struct.
++ */
++#define osal_list_for_each_entry_reverse(pos, head, member)            \
++    for (pos = osal_list_entry((head)->prev, __typeof__(*pos), member);    \
++         &pos->member != (head);     \
++         pos = osal_list_entry(pos->member.prev, __typeof__(*pos), member))
++
++/**
++ * list_prepare_entry - prepare a pos entry for use in list_for_each_entry_continue()
++ * @pos:    the type * to use as a start point
++ * @head:    the head of the list
++ * @member:    the name of the list_struct within the struct.
++ *
++ * Prepares a pos entry for use as a start point in list_for_each_entry_continue().
++ */
++#define osal_list_prepare_entry(pos, head, member) \
++    ((pos) ? : osal_list_entry(head, __typeof__(*pos), member))
++
++/**
++ * list_for_each_entry_continue - continue iteration over list of given type
++ * @pos:    the type * to use as a loop cursor.
++ * @head:    the head for your list.
++ * @member:    the name of the list_struct within the struct.
++ *
++ * Continue to iterate over list of given type, continuing after
++ * the current position.
++ */
++#define osal_list_for_each_entry_continue(pos, head, member)         \
++    for (pos = osal_list_entry(pos->member.next, __typeof__(*pos), member);    \
++         &pos->member != (head);    \
++         pos = osal_list_entry(pos->member.next, __typeof__(*pos), member))
++
++/**
++ * list_for_each_entry_continue_reverse - iterate backwards from the given point
++ * @pos:    the type * to use as a loop cursor.
++ * @head:    the head for your list.
++ * @member:    the name of the list_struct within the struct.
++ *
++ * Start to iterate over list of given type backwards, continuing after
++ * the current position.
++ */
++#define osal_list_for_each_entry_continue_reverse(pos, head, member)        \
++    for (pos = osal_list_entry(pos->member.prev, __typeof__(*pos), member);    \
++         &pos->member != (head);    \
++         pos = osal_list_entry(pos->member.prev, __typeof__(*pos), member))
++
++/**
++ * list_for_each_entry_from - iterate over list of given type from the current point
++ * @pos:    the type * to use as a loop cursor.
++ * @head:    the head for your list.
++ * @member:    the name of the list_struct within the struct.
++ *
++ * Iterate over list of given type, continuing from current position.
++ */
++#define osal_list_for_each_entry_from(pos, head, member)             \
++    for (; &pos->member != (head);    \
++         pos = osal_list_entry(pos->member.next, __typeof__(*pos), member))
++
++/**
++ * list_for_each_entry_safe - iterate over list of given type safe against removal of list entry
++ * @pos:    the type * to use as a loop cursor.
++ * @n:        another type * to use as temporary storage
++ * @head:    the head for your list.
++ * @member:    the name of the list_struct within the struct.
++ */
++#define osal_list_for_each_entry_safe(pos, n, head, member)            \
++    for (pos = osal_list_entry((head)->next, __typeof__(*pos), member),    \
++        n = osal_list_entry(pos->member.next, __typeof__(*pos), member);    \
++         &pos->member != (head);                     \
++         pos = n, n = osal_list_entry(n->member.next, __typeof__(*n), member))
++
++/**
++ * list_for_each_entry_safe_continue - continue list iteration safe against removal
++ * @pos:    the type * to use as a loop cursor.
++ * @n:        another type * to use as temporary storage
++ * @head:    the head for your list.
++ * @member:    the name of the list_struct within the struct.
++ *
++ * Iterate over list of given type, continuing after current point,
++ * safe against removal of list entry.
++ */
++#define osal_list_for_each_entry_safe_continue(pos, n, head, member)         \
++    for (pos = osal_list_entry(pos->member.next, __typeof__(*pos), member),         \
++        n = osal_list_entry(pos->member.next, __typeof__(*pos), member);        \
++         &pos->member != (head);                        \
++         pos = n, n = osal_list_entry(n->member.next, __typeof__(*n), member))
++
++/**
++ * list_for_each_entry_safe_from - iterate over list from current point safe against removal
++ * @pos:    the type * to use as a loop cursor.
++ * @n:        another type * to use as temporary storage
++ * @head:    the head for your list.
++ * @member:    the name of the list_struct within the struct.
++ *
++ * Iterate over list of given type from current point, safe against
++ * removal of list entry.
++ */
++#define osal_list_for_each_entry_safe_from(pos, n, head, member)             \
++    for (n = osal_list_entry(pos->member.next, __typeof__(*pos), member);        \
++         &pos->member != (head);                        \
++         pos = n, n = osal_list_entry(n->member.next, __typeof__(*n), member))
++
++/**
++ * list_for_each_entry_safe_reverse - iterate backwards over list safe against removal
++ * @pos:    the type * to use as a loop cursor.
++ * @n:        another type * to use as temporary storage
++ * @head:    the head for your list.
++ * @member:    the name of the list_struct within the struct.
++ *
++ * Iterate backwards over list of given type, safe against removal
++ * of list entry.
++ */
++#define osal_list_for_each_entry_safe_reverse(pos, n, head, member)        \
++    for (pos = osal_list_entry((head)->prev, __typeof__(*pos), member),    \
++        n = osal_list_entry(pos->member.prev, __typeof__(*pos), member);    \
++         &pos->member != (head);                     \
++         pos = n, n = osal_list_entry(n->member.prev, __typeof__(*n), member))
++
++/**
++ * list_safe_reset_next - reset a stale list_for_each_entry_safe loop
++ * @pos:    the loop cursor used in the list_for_each_entry_safe loop
++ * @n:        temporary storage used in list_for_each_entry_safe
++ * @member:    the name of the list_struct within the struct.
++ *
++ * list_safe_reset_next is not safe to use in general if the list may be
++ * modified concurrently (eg. the lock is dropped in the loop body). An
++ * exception to this is if the cursor element (pos) is pinned in the list,
++ * and list_safe_reset_next is called after re-taking the lock and before
++ * completing the current iteration of the loop body.
++ */
++#define osal_list_safe_reset_next(pos, n, member)                \
++    n = osal_list_entry(pos->member.next, __typeof__(*pos), member)
++
++/*
++ * Double linked lists with a single pointer list head.
++ * Mostly useful for hash tables where the two pointer list head is
++ * too wasteful.
++ * You lose the ability to access the tail in O(1).
++ */
++struct osal_hlist_node {
++	struct osal_hlist_node *next, **pprev;
++};
++struct osal_hlist_head {
++	struct osal_hlist_node *first;
++};
++
++#define OSAL_HLIST_HEAD_INIT { .first = OSAL_NULL }
++#define OSAL_HLIST_HEAD(name) struct osal_hlist_head name = {  .first = OSAL_NULL }
++#define INIT_OSAL_HLIST_HEAD(ptr) ((ptr)->first = OSAL_NULL)
++static inline void INIT_OSAL_HLIST_NODE(struct osal_hlist_node *h)
++{
++	h->next = OSAL_NULL;
++	h->pprev = OSAL_NULL;
++}
++
++static inline int osal_hlist_unhashed(const struct osal_hlist_node *h)
++{
++	return !h->pprev;
++}
++
++static inline int osal_hlist_empty(const struct osal_hlist_head *h)
++{
++	return !h->first;
++}
++
++static inline void osal___hlist_del(struct osal_hlist_node *n)
++{
++	struct osal_hlist_node *next = n->next;
++	struct osal_hlist_node **pprev = n->pprev;
++	*pprev = next;
++	if (next)
++		next->pprev = pprev;
++}
++
++static inline void osal_hlist_del(struct osal_hlist_node *n)
++{
++	osal___hlist_del(n);
++	n->next = OSAL_LIST_POISON1;
++	n->pprev = OSAL_LIST_POISON2;
++}
++
++static inline void osal_hlist_del_init(struct osal_hlist_node *n)
++{
++	if (!osal_hlist_unhashed(n)) {
++		osal___hlist_del(n);
++		INIT_OSAL_HLIST_NODE(n);
++	}
++}
++
++static inline void osal_hlist_add_head(struct osal_hlist_node *n, struct osal_hlist_head *h)
++{
++	struct osal_hlist_node *first = h->first;
++	n->next = first;
++	if (first)
++		first->pprev = &n->next;
++	h->first = n;
++	n->pprev = &h->first;
++}
++
++/* next must be != NULL */
++static inline void osal_hlist_add_before(struct osal_hlist_node *n, struct osal_hlist_node *next)
++{
++	n->pprev = next->pprev;
++	n->next = next;
++	next->pprev = &n->next;
++	*(n->pprev) = n;
++}
++
++static inline void osal_hlist_add_after(struct osal_hlist_node *n, struct osal_hlist_node *next)
++{
++	next->next = n->next;
++	n->next = next;
++	next->pprev = &n->next;
++
++	if (next->next)
++		next->next->pprev = &next->next;
++}
++
++/* after that we'll appear to be on some hlist and hlist_del will work */
++static inline void osal_hlist_add_fake(struct osal_hlist_node *n)
++{
++	n->pprev = &n->next;
++}
++
++/*
++ * Move a list from one list head to another. Fixup the pprev
++ * reference of the first entry if it exists.
++ */
++static inline void osal_hlist_move_list(struct osal_hlist_head *old, struct osal_hlist_head *new)
++{
++	new->first = old->first;
++	if (new->first)
++		new->first->pprev = &new->first;
++	old->first = OSAL_NULL;
++}
++
++#define osal_hlist_entry(ptr, type, member) osal_container_of(ptr,type,member)
++
++#define osal_hlist_for_each(pos, head) \
++    for (pos = (head)->first; pos ; pos = pos->next)
++
++#define osal_hlist_for_each_safe(pos, n, head) \
++    for (pos = (head)->first; pos && ({ n = pos->next; 1; }); \
++         pos = n)
++
++/**
++ * hlist_for_each_entry    - iterate over list of given type
++ * @tpos:    the type * to use as a loop cursor.
++ * @pos:    the &struct hlist_node to use as a loop cursor.
++ * @head:    the head for your list.
++ * @member:    the name of the hlist_node within the struct.
++ */
++#define osal_hlist_for_each_entry(tpos, pos, head, member)             \
++    for (pos = (head)->first;                     \
++         pos &&                             \
++        ({ tpos = osal_hlist_entry(pos, __typeof__(*tpos), member); 1;}); \
++         pos = pos->next)
++
++/**
++ * hlist_for_each_entry_continue - iterate over a hlist continuing after current point
++ * @tpos:    the type * to use as a loop cursor.
++ * @pos:    the &struct hlist_node to use as a loop cursor.
++ * @member:    the name of the hlist_node within the struct.
++ */
++#define osal_hlist_for_each_entry_continue(tpos, pos, member)         \
++    for (pos = (pos)->next;                         \
++         pos &&                             \
++        ({ tpos = osal_hlist_entry(pos, __typeof__(*tpos), member); 1;}); \
++         pos = pos->next)
++
++/**
++ * hlist_for_each_entry_from - iterate over a hlist continuing from current point
++ * @tpos:    the type * to use as a loop cursor.
++ * @pos:    the &struct hlist_node to use as a loop cursor.
++ * @member:    the name of the hlist_node within the struct.
++ */
++#define osal_hlist_for_each_entry_from(tpos, pos, member)             \
++    for (; pos &&                             \
++        ({ tpos = osal_hlist_entry(pos, __typeof__(*tpos), member); 1;}); \
++         pos = pos->next)
++
++/**
++ * hlist_for_each_entry_safe - iterate over list of given type safe against removal of list entry
++ * @tpos:    the type * to use as a loop cursor.
++ * @pos:    the &struct hlist_node to use as a loop cursor.
++ * @n:        another &struct hlist_node to use as temporary storage
++ * @head:    the head for your list.
++ * @member:    the name of the hlist_node within the struct.
++ */
++#define osal_hlist_for_each_entry_safe(tpos, pos, n, head, member)          \
++    for (pos = (head)->first;                     \
++         pos && ({ n = pos->next; 1; }) &&                  \
++        ({ tpos = osal_hlist_entry(pos, __typeof__(*tpos), member); 1;}); \
++         pos = n)
++
++#endif
+diff -r -u -N drivers/soc/axera/osal/include/osal_logdebug_ax.h b/drivers/soc/axera/osal/include/osal_logdebug_ax.h"
+--- a/drivers/soc/axera/osal/include/osal_logdebug_ax.h	1970-01-01 08:00:00.000000000 +0800
++++ b/drivers/soc/axera/osal/include/osal_logdebug_ax.h	2024-12-04 17:23:53.983795199 +0800
+@@ -0,0 +1,90 @@
++/**************************************************************************************************
++ *
++ * Copyright (c) 2019-2024 Axera Semiconductor Co., Ltd. All Rights Reserved.
++ *
++ * This source file is the property of Axera Semiconductor Co., Ltd. and
++ * may not be copied or distributed in any isomorphic form without the prior
++ * written consent of Axera Semiconductor Co., Ltd.
++ *
++ **************************************************************************************************/
++
++#ifndef __OSAL_LOGDEBUG_AX__H__
++#define __OSAL_LOGDEBUG_AX__H__
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++#include "osal_type_ax.h"
++#include "osal_list_ax.h"
++
++#define AX_LOG_LVL_ERROR			   3
++#define AX_LOG_LVL_WARNING 			   4
++#define AX_LOG_LVL_INFO				   6
++#define AX_LOG_LVL_DBG 				   7
++
++//debug
++typedef struct AX_PROC_DIR_ENTRY {
++    char name[50];
++    void *proc_dir_entry;
++    int (*open)(struct AX_PROC_DIR_ENTRY *entry);
++    int (*read)(struct AX_PROC_DIR_ENTRY *entry);
++    int (*write)(struct AX_PROC_DIR_ENTRY *entry, const char *buf, int count, long long *);
++    void *private_data;
++    void *seqfile;
++    struct AX_LIST_HEAD node;
++    struct AX_PROC_DIR_ENTRY *parent;
++} AX_PROC_DIR_ENTRY_T;
++
++int AX_OSAL_DBG_printk(const char *fmt, ...);
++void AX_OSAL_DBG_panic(const char *fmt, const char *fun,int line, const char *cond);
++void AX_OSAL_DBG_LogOutput(int target,int level, const char *tag, const char *fmt, ...);
++
++void AX_OSAL_DBG_ISPLogoutput(int level, const char *fmt,...);
++void AX_OSAL_DBG_NPULogoutput(int level, const char *fmt,...);
++void AX_OSAL_DBG_CMMLogoutput(int level, const char *fmt,...);
++void AX_OSAL_DBG_POOLLogoutput(int level, const char *fmt,...);
++void AX_OSAL_DBG_APPLogoutput(int level, const char *fmt,...);
++
++int AX_OSAL_DBG_SetLogLevel(int level);
++int AX_OSAL_DBG_SetLogTarget(int level);
++int AX_OSAL_DBG_EnableTimestamp(int enable);
++
++extern void rt_backtrace(void);
++#define AX_OSAL_DBG_Warnon(condition) do { \
++	if ((condition!=0)) {   \
++			rt_kprintf("Badness in %s at %s:%d/n",__FUNCTION__, __FILE__, __LINE__); \
++			rt_backtrace(); \
++			} \
++}while(0);
++
++
++#define AX_OSAL_DBG_Bugon(condition) do { \
++	void  (* PANIC_BACKTRACE_func) (void ); \
++	if ((condition!=0)) {   \
++			rt_kprintf("Badness in %s at %s:%d/n",__FUNCTION__, __FILE__, __LINE__); \
++			PANIC_BACKTRACE_func = 0; \
++			PANIC_BACKTRACE_func(); \
++			} \
++}while(0);
++
++#define AX_OSAL_DBG_Assert(condition) do { \
++	if ((condition==0)) {   \
++			rt_assert_handler("Assert ",__FUNCTION__, __LINE__); \
++			} \
++}while(0);
++
++
++int AX_OSAL_DBG_EnableTraceEvent(int module,int enable);
++
++
++AX_PROC_DIR_ENTRY_T *AX_OSAL_DBG_create_proc_entry(const char *name, AX_PROC_DIR_ENTRY_T *parent);
++AX_PROC_DIR_ENTRY_T *AX_OSAL_DBG_proc_mkdir(const char *name, AX_PROC_DIR_ENTRY_T *parent);
++void AX_OSAL_DBG_remove_proc_entry(const char *name, AX_PROC_DIR_ENTRY_T *parent);
++void AX_OSAL_DBG_seq_printf(AX_PROC_DIR_ENTRY_T *entry, const char *fmt, ...);
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif /*__OSAL_LOGDEBUG_AX__H__*/
+diff -r -u -N drivers/soc/axera/osal/include/osal_mailbox.h b/drivers/soc/axera/osal/include/osal_mailbox.h"
+--- a/drivers/soc/axera/osal/include/osal_mailbox.h	1970-01-01 08:00:00.000000000 +0800
++++ b/drivers/soc/axera/osal/include/osal_mailbox.h	2024-12-04 17:23:53.983795199 +0800
+@@ -0,0 +1,26 @@
++/**************************************************************************************************
++ *
++ * Copyright (c) 2019-2024 Axera Semiconductor Co., Ltd. All Rights Reserved.
++ *
++ * This source file is the property of Axera Semiconductor Co., Ltd. and
++ * may not be copied or distributed in any isomorphic form without the prior
++ * written consent of Axera Semiconductor Co., Ltd.
++ *
++ **************************************************************************************************/
++
++#ifndef __OSAL_MAILBOX_H__
++#define __OSAL_MAILBOX_H__
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++#include <linux/ax_mailbox.h>
++
++void AX_OSAL_mailbox_set_callback(mbox_callback_t *callback, void *pri_data);
++int AX_OSAL_mailbox_send_message(unsigned int send_masterid, unsigned int receive_masterid, mbox_msg_t *data);
++
++#ifdef __cplusplus
++}
++#endif
++#endif
+\ 文件尾没有换行符
+diff -r -u -N drivers/soc/axera/osal/include/osal_pm_ax.h b/drivers/soc/axera/osal/include/osal_pm_ax.h"
+--- a/drivers/soc/axera/osal/include/osal_pm_ax.h	1970-01-01 08:00:00.000000000 +0800
++++ b/drivers/soc/axera/osal/include/osal_pm_ax.h	2024-12-04 17:23:53.983795199 +0800
+@@ -0,0 +1,44 @@
++/**************************************************************************************************
++ *
++ * Copyright (c) 2019-2024 Axera Semiconductor Co., Ltd. All Rights Reserved.
++ *
++ * This source file is the property of Axera Semiconductor Co., Ltd. and
++ * may not be copied or distributed in any isomorphic form without the prior
++ * written consent of Axera Semiconductor Co., Ltd.
++ *
++ **************************************************************************************************/
++
++#ifndef __OSAL_POWER_AX__H__
++#define __OSAL_POWER_AX__H__
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++#include "osal_type_ax.h"
++
++#define AX_OSAL_PM_STATE_RUNNING        0
++#define AX_OSAL_PM_STATE_STANDBY        1
++#define AX_OSAL_PM_STATE_LIGHTSLEEP     2
++#define AX_OSAL_PM_STATE_DEEPSLEEP      3
++
++#define AX_OSAL_PM_SYS_NPU              1
++#define AX_OSAL_PM_SYS_VPU              2
++#define AX_OSAL_PM_SYS_ISP              3
++#define AX_OSAL_PM_SYS_MM               4
++
++#define AX_OSAL_PM_SYS_WAKEUP2          2
++#define AX_OSAL_PM_SYS_WAKEUP5          5
++
++int AX_OSAL_PM_WakeupLock(char *lock_name);
++int AX_OSAL_PM_WakeupUnlock(char *lock_name);
++int AX_OSAL_PM_SetLevel(int pm_level);
++int AX_OSAL_PM_GetLevel(int *pm_level);
++int AX_OSAL_PM_SetSysMode(int sys,int mode);
++int AX_OSAL_PM_SetWakePin(int wake_pin);
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif /*__OSAL_POWER_AX__H__*/
+diff -r -u -N drivers/soc/axera/osal/include/osal_type_ax.h b/drivers/soc/axera/osal/include/osal_type_ax.h"
+--- a/drivers/soc/axera/osal/include/osal_type_ax.h	1970-01-01 08:00:00.000000000 +0800
++++ b/drivers/soc/axera/osal/include/osal_type_ax.h	2024-12-04 17:23:53.983795199 +0800
+@@ -0,0 +1,60 @@
++/**************************************************************************************************
++ *
++ * Copyright (c) 2019-2024 Axera Semiconductor Co., Ltd. All Rights Reserved.
++ *
++ * This source file is the property of Axera Semiconductor Co., Ltd. and
++ * may not be copied or distributed in any isomorphic form without the prior
++ * written consent of Axera Semiconductor Co., Ltd.
++ *
++ **************************************************************************************************/
++
++#ifndef __OSAL_TYPE_AX__H__
++#define __OSAL_TYPE_AX__H__
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++#include <linux/version.h>
++
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 15, 0))
++typedef void (*swap_func_t)(void *a, void *b, int size);
++typedef int (*cmp_r_func_t)(const void *a, const void *b, const void *priv);
++typedef int (*cmp_func_t)(const void *a, const void *b);
++#endif
++
++/*define 64BIT*/
++
++/*define 32BIT*/
++#define AX_USHRT_MAX    ((u16)(~0U))
++#define AX_SHRT_MAX ((s16)(AX_USHRT_MAX>>1))
++#define AX_SHRT_MIN ((s16)(-AX_SHRT_MAX - 1))
++#define AX_INT_MAX      ((int)(~0U>>1))
++#define AX_INT_MIN      (-AX_INT_MAX - 1)
++#define AX_UINT_MAX (~0U)
++#define AX_LONG_MAX ((long)(~0UL>>1))
++#define AX_LONG_MIN (-AX_LONG_MAX - 1)
++#define AX_ULONG_MAX    (~0UL)
++#define AX_LLONG_MAX    ((long long)(~0ULL>>1))
++#define AX_LLONG_MIN    (-AX_LLONG_MAX - 1)
++#define AX_ULLONG_MAX   (~0ULL)
++#define AX_SIZE_MAX (~(AX_SIZE_T)0)
++
++#define AX_U8_MAX       ((u8)~0U)
++#define AX_S8_MAX       ((s8)(AX_U8_MAX>>1))
++#define AX_S8_MIN       ((s8)(-AX_S8_MAX - 1))
++#define AX_U16_MAX      ((u16)~0U)
++#define AX_S16_MAX      ((s16)(AX_U16_MAX>>1))
++#define AX_S16_MIN      ((s16)(-AX_S16_MAX - 1))
++#define AX_U32_MAX      ((u32)~0U)
++#define AX_S32_MAX      ((s32)(AX_U32_MAX>>1))
++#define AX_S32_MIN      ((s32)(-AX_S32_MAX - 1))
++#define AX_U64_MAX      ((u64)~0ULL)
++#define AX_S64_MAX      ((s64)(AX_U64_MAX>>1))
++#define AX_S64_MIN      ((s64)(-AX_S64_MAX - 1))
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif /*__OSAL_TYPE_AX__H__*/
+diff -r -u -N drivers/soc/axera/osal/include/osal_user_ax.h b/drivers/soc/axera/osal/include/osal_user_ax.h"
+--- a/drivers/soc/axera/osal/include/osal_user_ax.h	1970-01-01 08:00:00.000000000 +0800
++++ b/drivers/soc/axera/osal/include/osal_user_ax.h	2024-12-04 17:23:53.983795199 +0800
+@@ -0,0 +1,91 @@
++/**************************************************************************************************
++ *
++ * Copyright (c) 2019-2024 Axera Semiconductor Co., Ltd. All Rights Reserved.
++ *
++ * This source file is the property of Axera Semiconductor Co., Ltd. and
++ * may not be copied or distributed in any isomorphic form without the prior
++ * written consent of Axera Semiconductor Co., Ltd.
++ *
++ **************************************************************************************************/
++
++#ifndef __OSAL_USER_AX__H__
++#define __OSAL_USER_AX__H__
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++#include "osal_type_ax.h"
++
++#define AX_USED __attribute__((used))
++
++#ifdef CHIP_AX170
++    #define GFP_KERNEL          0
++    #define THREAD_PRIORITY     9
++#else
++    #define THREAD_PRIORITY     99
++#endif
++
++#ifndef IRQ_NONE
++#define IRQ_NONE                (0)
++#endif
++
++#ifndef IRQ_HANDLED
++#define IRQ_HANDLED             (1)
++#endif
++
++#ifndef IRQ_RETVAL
++#define IRQ_RETVAL(x)           ((x) != 0)
++#endif
++
++#define IRQF_TRIGGER_NONE       0x00000000
++#define IRQF_TRIGGER_RISING     0x00000001
++#define IRQF_TRIGGER_FALLING    0x00000002
++#define IRQF_TRIGGER_HIGH       0x00000004
++#define IRQF_TRIGGER_LOW        0x00000008
++#define IRQF_TRIGGER_MASK       (IRQF_TRIGGER_HIGH | IRQF_TRIGGER_LOW | \
++                                IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING)
++#define IRQF_TRIGGER_PROBE      0x00000010
++
++#ifndef IRQF_SHARED
++#define IRQF_SHARED             0x00000080
++#endif
++
++#define IRQF_PROBE_SHARED       0x00000100
++#define __IRQF_TIMER            0x00000200
++#define IRQF_PERCPU             0x00000400
++#define IRQF_NOBALANCING        0x00000800
++#define IRQF_IRQPOLL            0x00001000
++#define IRQF_ONESHOT            0x00002000
++#define IRQF_NO_SUSPEND         0x00004000
++#define IRQF_FORCE_RESUME       0x00008000
++#define IRQF_NO_THREAD          0x00010000
++#define IRQF_EARLY_RESUME       0x00020000
++#define IRQF_COND_SUSPEND       0x00040000
++
++#define POLLIN                  0x00000001
++#define POLLPRI                 0x00000002
++#define POLLOUT                 0x00000004
++#define POLLERR                 0x00000008
++#define POLLHUP                 0x00000010
++#define POLLNVAL                0x00000020
++
++#define EPOLLIN                 0x00000001
++#define EPOLLPRI                0x00000002
++#define EPOLLOUT                0x00000004
++#define EPOLLERR                0x00000008
++#define EPOLLHUP                0x00000010
++#define EPOLLNVAL               0x00000020
++#define EPOLLRDNORM             0x00000040
++#define EPOLLRDBAND             0x00000080
++#define EPOLLWRNORM             0x00000100
++#define EPOLLWRBAND             0x00000200
++#define EPOLLMSG                0x00000400
++#define EPOLLRDHUP              0x00002000
++
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif /*__OSAL_USER_AX__H__*/
+diff -r -u -N drivers/soc/axera/osal/Makefile b/drivers/soc/axera/osal/Makefile"
+--- a/drivers/soc/axera/osal/Makefile	1970-01-01 08:00:00.000000000 +0800
++++ b/drivers/soc/axera/osal/Makefile	2024-12-04 17:23:53.979795115 +0800
+@@ -0,0 +1,3 @@
++MKFILE_PATH        := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
++LINUXINCLUDE += -I$(MKFILE_PATH)/include 
++obj-y   += osal_all_code.o
+\ 文件尾没有换行符
+--- a/drivers/soc/axera/Makefile	2024-12-04 17:46:51.362700227 +0800
++++ b/drivers/soc/axera/Makefile	2024-12-04 17:46:48.430653410 +0800
+@@ -12,7 +12,7 @@
+ obj-$(CONFIG_AXERA_SYS_MAP)           += sysmap/
+ obj-$(CONFIG_AX_GZIPD)                += gzipd/
+ obj-$(CONFIG_AXERA_RISCV_DRV)         += riscv/
+-obj-$(CONFIG_AXERA_OSAL)              += ../../../../../osal/linux/kernel/
++obj-$(CONFIG_AXERA_OSAL)              += osal/
+ obj-$(CONFIG_AXERA_BUILDIN_PRVDRV)    += ../../../../../osdrv/private_drv2kernel/
+ obj-$(CONFIG_AXERA_DISPLAY_DUMMY)     += display_dummy/
+ obj-$(CONFIG_AXERA_MEMORY_DUMP)       += memory_dump/

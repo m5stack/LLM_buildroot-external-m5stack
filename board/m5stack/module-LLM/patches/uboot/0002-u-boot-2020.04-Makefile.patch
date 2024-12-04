@@ -1,0 +1,15 @@
+--- a/Makefile	2024-12-04 14:57:52.162167160 +0800
++++ b/Makefile	2024-12-04 15:02:18.882395440 +0800
+@@ -1,5 +1,11 @@
+ # SPDX-License-Identifier: GPL-2.0+
+-include $(HOME_PATH)/build/projects/$(PROJECT)/project.mak
++# include $(HOME_PATH)/build/projects/$(PROJECT)/project.mak
++AXERA_DTB_IMG_ADDR              := 0x40001000
++FLASH_PARTITIONS := "768K\(spl\),512K\(ddrinit\),256K\(atf\),256K\(atf_b\),1536K\(uboot\),1536K\(uboot_b\),1024K\(env\),6144K\(logo\),6144K\(logo_b\),1024K\(optee\),1024K\(optee_b\),1024K\(dtb\),1024K\(dtb_b\),262144K\(kernel\),262144K\(kernel_b\),29889536K\(ubuntu_rootfs\)"
++KERNEL_BOOTARGS  := "mem=2048M console=ttyS0,115200n8 earlycon=uart8250,mmio32,0x4880000 board_id=0,boot_reason=0x0 initcall_debug=0 quiet loglevel=0 usbcore.autosuspend=-1 root=/dev/mmcblk0p16 rootfstype=ext4 rw rootwait blkdevparts=mmcblk0:$(FLASH_PARTITIONS)"
++
++IMG_HEADER_SIZE                 := 1024
++DTB_IMG_HEADER_ADDR             := 0x40000c00
+ VERSION = 2020
+ PATCHLEVEL = 04
+ SUBLEVEL =

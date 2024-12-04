@@ -1,0 +1,84 @@
+diff -u -r -N drivers/soc/axera/gzipd/ax_gzipd_drv.c drivers/soc/axera/gzipd/ax_gzipd_drv.c
+--- a/drivers/soc/axera/gzipd/ax_gzipd_drv.c	2024-12-04 16:50:11.951677692 +0800
++++ b/drivers/soc/axera/gzipd/ax_gzipd_drv.c	2024-12-04 16:49:54.683395497 +0800
+@@ -22,7 +22,7 @@
+ #include <linux/fs.h>
+ #include <linux/pm.h>
+ #include "ax_gzipd_reg.h"
+-#include "ax_gzipd_api.h"
++#include <axera/ax_gzipd_api.h>
+ #include "ax_gzipd_sys.h"
+ #include "ax_gzipd_adapter.h"
+ #include "ax_gzipd_log.h"
+diff -u -r -N drivers/soc/axera/gzipd/ax_gzipd_drv.h drivers/soc/axera/gzipd/ax_gzipd_drv.h
+--- a/drivers/soc/axera/gzipd/ax_gzipd_drv.h	2024-12-04 16:50:14.631721515 +0800
++++ b/drivers/soc/axera/gzipd/ax_gzipd_drv.h	2024-12-04 16:49:54.683395497 +0800
+@@ -15,7 +15,7 @@
+ #include <linux/mutex.h>
+ #include <linux/clk.h>
+ #include <linux/reset.h>
+-#include "ax_gzipd_api.h"
++#include <axera/ax_gzipd_api.h>
+ #include "ax_gzipd_log.h"
+ 
+ #define BYPASS_EN 0
+diff -u -r -N drivers/soc/axera/gzipd/ax_gzipd_hal_type.h drivers/soc/axera/gzipd/ax_gzipd_hal_type.h
+--- a/drivers/soc/axera/gzipd/ax_gzipd_hal_type.h	2024-12-04 16:50:18.667787527 +0800
++++ b/drivers/soc/axera/gzipd/ax_gzipd_hal_type.h	2024-12-04 16:49:54.683395497 +0800
+@@ -11,7 +11,7 @@
+ #ifndef _AX_GZIPD_HAL_TYPE_H_
+ #define _AX_GZIPD_HAL_TYPE_H_
+ 
+-#include "ax_gzipd_api.h"
++#include <axera/ax_gzipd_api.h>
+ 
+ typedef struct {
+     AX_S32 *handle;
+diff -u -r -N drivers/soc/axera/gzipd/ax_gzipd_log.h drivers/soc/axera/gzipd/ax_gzipd_log.h
+--- a/drivers/soc/axera/gzipd/ax_gzipd_log.h	2024-12-04 16:50:21.783838503 +0800
++++ b/drivers/soc/axera/gzipd/ax_gzipd_log.h	2024-12-04 16:49:54.683395497 +0800
+@@ -11,7 +11,7 @@
+ #ifndef _AX_GZIPD_DEV_LOG_H_
+ #define _AX_GZIPD_DEV_LOG_H_
+ 
+-#include "ax_global_type.h"
++#include <axera/ax_global_type.h>
+ #include "ax_gzipd_adapter.h"
+ 
+ // #define GZIPD_CRC32_ENABLE
+diff -u -r -N drivers/soc/axera/gzipd/ax_gzipd_mng.c drivers/soc/axera/gzipd/ax_gzipd_mng.c
+--- a/drivers/soc/axera/gzipd/ax_gzipd_mng.c	2024-12-04 16:50:25.059892107 +0800
++++ b/drivers/soc/axera/gzipd/ax_gzipd_mng.c	2024-12-04 16:49:54.683395497 +0800
+@@ -20,7 +20,7 @@
+ #include <linux/sched.h>
+ #include <linux/uaccess.h>
+ 
+-#include "ax_gzipd_api.h"
++#include <axera/ax_gzipd_api.h>
+ #include "ax_gzipd_drv.h"
+ #include "ax_gzipd_mng.h"
+ #include "ax_gzipd_adapter.h"
+diff -u -r -N drivers/soc/axera/gzipd/ax_gzipd_mng.h drivers/soc/axera/gzipd/ax_gzipd_mng.h
+--- a/drivers/soc/axera/gzipd/ax_gzipd_mng.h	2024-12-04 16:50:29.375962744 +0800
++++ b/drivers/soc/axera/gzipd/ax_gzipd_mng.h	2024-12-04 16:49:54.683395497 +0800
+@@ -14,7 +14,7 @@
+ #include <types.h>
+ 
+ #include "ax_gzipd_log.h"
+-#include "ax_gzipd_api.h"
++#include <axera/ax_gzipd_api.h>
+ #include "ax_gzipd_adapter.h"
+ 
+ #define AX_GZIP_INST_HANDLE_MAX 100
+diff -u -r -N drivers/soc/axera/gzipd/ax_gzipd_sys.h drivers/soc/axera/gzipd/ax_gzipd_sys.h
+--- a/drivers/soc/axera/gzipd/ax_gzipd_sys.h	2024-12-04 16:50:36.096072760 +0800
++++ b/drivers/soc/axera/gzipd/ax_gzipd_sys.h	2024-12-04 16:49:54.683395497 +0800
+@@ -11,7 +11,7 @@
+ #ifndef __AX_GZIPD_DEV_SYS__
+ #define __AX_GZIPD_DEV_SYS__
+ 
+-#include "ax_base_type.h"
++#include <axera/ax_base_type.h>
+ 
+ typedef unsigned char uint8_t;
+ typedef unsigned short uint16_t;

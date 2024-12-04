@@ -1,0 +1,36 @@
+#!/bin/sh
+#
+# Starts /etc/rc.local.
+#
+
+start() {
+	printf "Stopping /etc/rc.local"
+    /etc/rc.local start
+	[ $? = 0 ] && echo "OK" || echo "FAIL"
+}
+stop() {
+	printf "Stopping /etc/rc.local"
+    # /etc/rc.local stop
+	[ $? = 0 ] && echo "OK" || echo "FAIL"
+}
+restart() {
+	stop
+	start
+}
+
+case "$1" in
+  start)
+  	start
+	;;
+  stop)
+  	stop
+	;;
+  restart|reload)
+  	restart
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart}"
+	exit 1
+esac
+
+exit $?
