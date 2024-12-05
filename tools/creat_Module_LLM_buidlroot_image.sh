@@ -9,9 +9,12 @@ clone_buildroot() {
     [ -d 'buildroot' ] || git clone https://github.com/bootlin/buildroot.git -b st/2023.02.10
     [ -d 'buildroot' ] || { echo "not found buildroot" && exit -1; }
     pushd buildroot
-    # [ -f 'dl.7z' ] || wget https://github.com/m5stack/CoreMP135_buildroot/releases/download/v1.0.1/dl.7z
-    # [ -d 'dl' ] || 7z x dl.7z -odl
-    # [ -d 'dl' ] || { echo "not found dl" && exit -1; }
+    hostname=$(hostname)
+    if [ "$hostname" = "nihao-z690" ]; then
+        [ -f 'dl.7z' ] || wget https://m5stack.oss-cn-shenzhen.aliyuncs.com/resource/linux/llm/dl.7z
+        [ -d 'dl' ] || 7z x dl.7z -odl
+        [ -d 'dl' ] || { echo "not found dl" && exit -1; }
+    fi
     popd
 }
 
