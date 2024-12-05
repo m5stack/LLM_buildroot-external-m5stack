@@ -1,0 +1,13 @@
+--- a/cmd/axera/boot/axera_boot.c	2024-12-05 13:53:47.972154709 +0800
++++ b/cmd/axera/boot/axera_boot.c	2024-12-05 14:21:03.770428748 +0800
+@@ -532,6 +532,10 @@
+ 	const char *x_kernel = "kernel";
+ 	const char *x_dtb = "dtb";
+ 
++	char *axera_boot_after_cmd = env_get("before_boot_cmd");
++	if(NULL != axera_boot_after_cmd) 
++		run_command(axera_boot_after_cmd, 0);
++
+ #ifdef CONFIG_AXERA_EMAC
+ 	ax_shutdown_ephy();
+ #endif
