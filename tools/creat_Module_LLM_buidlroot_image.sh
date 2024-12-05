@@ -25,7 +25,7 @@ make_buildroot() {
     make -j `nproc`
 }
 
-sudo apt install debianutils sed make binutils build-essential gcc g++ bash patch gzip bzip2 perl tar cpio unzip rsync file bc git cmake p7zip-full python3 python3-pip expect libssl-dev qemu-user-static fuse2fs -y
+sudo apt install debianutils sed make binutils build-essential gcc g++ bash patch gzip bzip2 perl tar cpio unzip rsync file bc git cmake p7zip-full python3 python3-pip expect libssl-dev qemu-user-static -y
 
 fun_lists=("clone_buildroot" "make_buildroot")
 

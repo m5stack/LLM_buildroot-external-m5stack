@@ -9,9 +9,8 @@ main()
 	# BINARIES_DIR
 
 	mkdir ${BINARIES_DIR}/rootfs
-	fuse2fs ${BINARIES_DIR}/rootfs.ext2 ${BINARIES_DIR}/rootfs
-	${BR2_EXTERNAL_M5STACK_PATH}/tools/bin/make_ext4fs -l 30606884864 -s ${BINARIES_DIR}/rootfs_sparse.ext4
-	fusermount -u ${BINARIES_DIR}/rootfs
+	tar xf ${BINARIES_DIR}/rootfs.tar -C ${BINARIES_DIR}/rootfs
+	${BR2_EXTERNAL_M5STACK_PATH}/tools/bin/make_ext4fs -l 30606884864 -s ${BINARIES_DIR}/rootfs_sparse.ext4 ${BINARIES_DIR}/rootfs/
 	rm ${BINARIES_DIR}/rootfs -rf
 
 	mkdir -p ${BINARIES_DIR}/../axera-image
