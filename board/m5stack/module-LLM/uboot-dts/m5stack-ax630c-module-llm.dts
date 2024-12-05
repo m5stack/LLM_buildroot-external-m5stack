@@ -71,3 +71,6 @@
 		status = "okay";
 	};
 };
+&i2c4 {
+	status = "okay";
+};

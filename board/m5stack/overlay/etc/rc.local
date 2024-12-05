@@ -1,16 +1,22 @@
 #!/bin/sh
 [ "$1" = "stop" ] && exit 0
-modprobe fb_ili9342c
-FRAMEBUFFER=`cat /proc/fb | grep ili9342c | awk '{print "/dev/fb"$1}'` fbv /usr/local/m5stack/logo.jpg &> /dev/null &
-echo 1 4 1 7 > /proc/sys/kernel/printk
-tinyplay /usr/local/m5stack/logo.wav &> /dev/null &
-
-# set otg master
-# echo 130 > /sys/class/gpio/export && echo out > /sys/class/gpio/gpio130/direction && echo 1 > /sys/class/gpio/gpio130/value 
-# echo "host" >/sys/class/usb_role/49000000.usb-otg-role-switch/role
-echo "device" >/sys/class/usb_role/49000000.usb-otg-role-switch/role
-
-# set bus 5V out
-# echo 131 > /sys/class/gpio/export && echo out > /sys/class/gpio/PI3/direction && echo 1 > /sys/class/gpio/PI3/value
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+exit 0
