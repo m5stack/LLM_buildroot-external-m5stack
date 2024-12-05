@@ -16,18 +16,18 @@ clone_buildroot() {
 }
 
 make_buildroot() {
-    cd CoreMP135_buildroot
+    cd buildroot
     make BR2_EXTERNAL=../../.. m5stack_module_llm_4_19_defconfig
     [[ -v ROOTFS_SIZE ]] && sed -i 's/^\(BR2_TARGET_ROOTFS_EXT2_SIZE=\).*$/\1"'"${ROOTFS_SIZE}"'"/' .config
     make -j `nproc`
 }
 
-sudo apt install debianutils sed make binutils build-essential gcc g++ bash patch gzip bzip2 perl tar cpio unzip rsync file bc git cmake p7zip-full python3 python3-pip expect libssl-dev qemu-user-static -y
+sudo apt install debianutils sed make binutils build-essential gcc g++ bash patch gzip bzip2 perl tar cpio unzip rsync file bc git cmake p7zip-full python3 python3-pip expect libssl-dev qemu-user-static fuse2fs -y
 
 fun_lists=("clone_buildroot" "make_buildroot")
 
-[ -d 'build_coremp135_buidlroot' ] || mkdir build_coremp135_buidlroot
-pushd build_coremp135_buidlroot
+[ -d 'build_Module_LLM_buidlroot' ] || mkdir build_Module_LLM_buidlroot
+pushd build_Module_LLM_buidlroot
 for item in "${fun_lists[@]}"; do
     $item
     ret=$?
