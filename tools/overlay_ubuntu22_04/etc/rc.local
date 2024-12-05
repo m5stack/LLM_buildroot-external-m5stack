@@ -1,0 +1,5 @@
+#!/bin/sh
+#[ "$1" = "stop" ] && exit 0
+
+
+exit 0

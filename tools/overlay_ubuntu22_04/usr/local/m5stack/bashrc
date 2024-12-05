@@ -1,0 +1,30 @@
+#!/bin/bash
+TARGET_PATH="/usr/local/m5stack/bin"
+if [ -z "$PATH" ]; then
+  export PATH="$TARGET_PATH"
+else
+  case ":$PATH:" in
+    *":$TARGET_PATH:"*) 
+      echo "out" > /dev/null
+      ;;
+    *) 
+      export PATH="$PATH:$TARGET_PATH"
+      ;;
+  esac
+fi
+
+TARGET_LD_LIBRARY_PATH="/usr/local/m5stack/lib"
+if [ -z "$LD_LIBRARY_PATH" ]; then
+  export LD_LIBRARY_PATH="$TARGET_LD_LIBRARY_PATH"
+else
+  case ":$LD_LIBRARY_PATH:" in
+    *":$TARGET_LD_LIBRARY_PATH:"*) 
+      echo "out" > /dev/null
+      ;;
+    *) 
+      export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$TARGET_LD_LIBRARY_PATH"
+      ;;
+  esac
+fi
+
+export FRAMEBUFFER=`cat /proc/fb | grep ili9342c | awk '{print "/dev/fb"$1}'`
