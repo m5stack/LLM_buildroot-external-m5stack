@@ -8,7 +8,7 @@
 [ -d 'build_Module_LLM_ubuntu22_04/axera-image' ] || { echo "not found axera-image" && exit -1; }
 
 pushd build_Module_LLM_ubuntu22_04
-[ -f 'ubuntu-base-22.04.5-base-arm64.tar.gz' ] || wget http://cdimage.ubuntu.com/ubuntu-base/releases/22.04/release/ubuntu-base-22.04.5-base-arm64.tar.gz --overwrite
+[ -f 'ubuntu-base-22.04.5-base-arm64.tar.gz' ] || wget http://cdimage.ubuntu.com/ubuntu-base/releases/22.04/release/ubuntu-base-22.04.5-base-arm64.tar.gz 
 [ -f 'ubuntu-base-22.04.5-base-arm64.tar.gz' ] || { echo "not found ubuntu-base-22.04.5-base-arm64.tar.gz" && exit -1; }
 [ -d 'ubuntu-base-22.04.5-base-arm64' ] || mkdir ubuntu-base-22.04.5-base-arm64
 tar -zxpf ubuntu-base-22.04.5-base-arm64.tar.gz -C ubuntu-base-22.04.5-base-arm64
