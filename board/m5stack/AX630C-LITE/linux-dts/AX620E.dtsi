@@ -17,6 +17,7 @@
 #include <dt-bindings/phy/axera-dt-phy.h>
 #include "AX620E_opptable.dtsi"
 #include <dt-bindings/memory/AX620E_reserve_mem_define.h>
+#include <dt-bindings/display/panel-tp2803.h>
 
 / {
 	compatible = "axera,ax620e";
@@ -29,6 +30,10 @@
 
 		serial0 = &ax_uart0;
 		serial1 = &ax_uart1;
+		serial2 = &ax_uart2;
+		serial3 = &ax_uart3;
+		serial4 = &ax_uart4;
+		serial5 = &ax_uart5;
 		spi0 = &spi0;
 		spi1 = &spi1;
 		spi2 = &spi2;
@@ -75,6 +80,7 @@
 			compatible = "cache";
 		};
 	};
+
 	psci {
 		compatible = "arm,psci-1.0";
 		method = "smc";
@@ -88,13 +94,15 @@
 		};
 	};
 #endif
+
 	timer {
-		compatible = "arm,armv8-timer";
+		compatible = "arm,armv7-timer";
+		arm,cpu-registers-not-fw-configured;
 		interrupts = <GIC_PPI 13 (GIC_CPU_MASK_SIMPLE(2) | IRQ_TYPE_LEVEL_HIGH)>,
 			     <GIC_PPI 14 (GIC_CPU_MASK_SIMPLE(2) | IRQ_TYPE_LEVEL_HIGH)>,
 			     <GIC_PPI 11 (GIC_CPU_MASK_SIMPLE(2) | IRQ_TYPE_LEVEL_HIGH)>,
 			     <GIC_PPI 10 (GIC_CPU_MASK_SIMPLE(2) | IRQ_TYPE_LEVEL_HIGH)>;
-		clock_frequency = <24000000>;
+		clock-frequency = <24000000>;
 	};
 
 	gic: interrupt-controller@0x1850000 {
@@ -155,6 +163,70 @@
 			clock-frequency = <208000000>;
 			ax_clk_id = <1>;
 			interrupts = <GIC_SPI 119 IRQ_TYPE_LEVEL_HIGH>;
+			default_cpr_reg = <0x425F2>;
+			status = "disabled";
+		};
+		ax_uart2: ax_uart@4882000 { /*debug uart*/
+			compatible = "axera,ax-apb-uart";
+			reg = <0x0 0x4882000 0x0 0x400>;
+			reg-shift = <2>;
+			reg-io-width = <4>;
+			dmas = <&dma_per 44 &dma_per 45>;
+			dma-names = "tx", "rx";
+			resets = <&periph_reset 25 0x20 1>,
+				 <&periph_reset 24 0x20 1>;
+			reset-names = "reset", "preset";
+			clock-frequency = <208000000>;
+			ax_clk_id = <2>;
+			interrupts = <GIC_SPI 120 IRQ_TYPE_LEVEL_HIGH>;
+			default_cpr_reg = <0x425F2>;
+			status = "disabled";
+		};
+		ax_uart3: ax_uart@6080000 {
+			compatible = "axera,ax-apb-uart";
+			reg = <0x0 0x6080000 0x0 0x400>;
+			reg-shift = <2>;
+			reg-io-width = <4>;
+			dmas = <&dma_per 46 &dma_per 47>;
+			dma-names = "tx", "rx";
+			resets = <&periph_reset 27 0x20 1>,
+				 <&periph_reset 26 0x20 1>;
+			reset-names = "reset", "preset";
+			clock-frequency = <208000000>;
+			ax_clk_id = <3>;
+			interrupts = <GIC_SPI 121 IRQ_TYPE_LEVEL_HIGH>;
+			default_cpr_reg = <0x425F2>;
+			status = "disabled";
+		};
+		ax_uart4: ax_uart@6081000 {
+			compatible = "axera,ax-apb-uart";
+			reg = <0x0 0x6081000 0x0 0x400>;
+			reg-shift = <2>;
+			reg-io-width = <4>;
+			dmas = <&dma_per 48 &dma_per 49>;
+			dma-names = "tx", "rx";
+			resets = <&periph_reset 29 0x20 1>,
+				 <&periph_reset 28 0x20 1>;
+			reset-names = "reset", "preset";
+			clock-frequency = <208000000>;
+			ax_clk_id = <4>;
+			interrupts = <GIC_SPI 122 IRQ_TYPE_LEVEL_HIGH>;
+			default_cpr_reg = <0x425F2>;
+			status = "disabled";
+		};
+		ax_uart5: ax_uart@6082000 {
+			compatible = "axera,ax-apb-uart";
+			reg = <0x0 0x6082000 0x0 0x400>;
+			reg-shift = <2>;
+			reg-io-width = <4>;
+			dmas = <&dma_per 50 &dma_per 51>;
+			dma-names = "tx", "rx";
+			resets = <&periph_reset 31 0x20 1>,
+				 <&periph_reset 30 0x20 1>;
+			reset-names = "reset", "preset";
+			clock-frequency = <208000000>;
+			ax_clk_id = <5>;
+			interrupts = <GIC_SPI 123 IRQ_TYPE_LEVEL_HIGH>;
 			default_cpr_reg = <0x425F2>;
 			status = "disabled";
 		};
@@ -298,7 +370,7 @@
 		};
 		hwinfo: hwinfo {
 			compatible = "ax,ax_hwinfo";
-			status = "okay";
+			status = "disabled";
 		};
 		wdt0: watchdog@4840000 {
 			compatible = "axera,ax-wdt";
@@ -483,12 +555,24 @@
 			reset-names = "prst","rst";
 			status = "disabled";
 		};
+		i2c_slv1: i2c_slv@4861000 {
+			compatible = "snps,designware-i2c";
+			reg = <0x0 0x4861000 0x0 0x400>;
+			interrupts = <GIC_SPI 144 IRQ_TYPE_LEVEL_HIGH>;
+			clock-frequency = <400000>;
+			i2c-sda-hold-time-ns = <500>;
+			ax_clk_id = <9>;
+			resets = <&periph_reset 4 0x1c 1>,
+				 <&periph_reset 5 0x1c 1>;
+			reset-names = "prst","rst";
+			status = "disabled";
+		};
 		mailbox: mailbox@10430000{
 			compatible = "axera,mailbox";
 			reg = <0x0 0x10430000 0x0 0x10000>;
 			interrupts = <GIC_SPI 82 IRQ_TYPE_LEVEL_HIGH>;
 			#mbox-cells = <2>;
-			status = "okay";
+			status = "disabled";
 		};
 		sys {
 			compatible = "axera,sys";
@@ -496,6 +580,10 @@
 		cmm: cmm {
 			compatible = "axera,cmm";
 		};
+		avs {
+			compatible = "axera,avs";
+		};
+
 		i2s_mst0: i2s_mst@6050000 {
 			compatible = "axera,dwc-i2s-mst";
 			reg = <0x0 0x6050000 0x0 0x400>,
@@ -508,8 +596,8 @@
 				 <&periph_clk AX620X_SCLK_I2S_M_EB>,
 				 <&periph_clk AX620X_CLK_I2S_REF0_EB>;
 			clock-names = "i2s_pclk", "i2s_sclk", "i2s_mclk";
-			resets = <&periph_reset 6 0x1C 1>,
-				 <&periph_reset 7 0x1C 1>;
+			resets = <&periph_reset_async 6 0xE0 6 0xE4 0XC 27 0XC0 27 0XC4 27>,
+				 <&periph_reset_async 7 0xE0 7 0XE4 0X4 16 0XB0 16 0XB4 16>;
 			reset-names = "prst", "rst";
 			channel = <1>;
 			#sound-dai-cells = <0>;
@@ -526,8 +614,8 @@
 			clocks = <&periph_clk AX620X_PCLK_I2S_S_EB>,
 				 <&periph_clk AX620X_CLK_I2S_REF0_EB>;
 			clock-names = "i2s_pclk", "i2s_mclk";
-			resets = <&periph_reset 8 0x1C 1>,
-				 <&periph_reset 9 0x1C 1>;
+			resets = <&periph_reset_async 8 0xE0 8 0XE4 0XC 28 0XC0 28 0XC4 28>,
+				 <&periph_reset 9 0x1C 1>;  /* slave reset without clk */
 			reset-names = "prst", "rst";
 			channel = <3>;
 			#sound-dai-cells = <0>;
@@ -545,8 +633,8 @@
 				 <&periph_clk AX620X_SCLK_I2S_TDM_EB>,
 				 <&periph_clk AX620X_CLK_I2S_REF0_EB>;
 			clock-names = "i2s_pclk", "i2s_sclk", "i2s_mclk";
-			resets = <&periph_reset 10 0x1C 1>,
-				 <&periph_reset 11 0x1C 1>;
+			resets = <&periph_reset_async 10 0xE0 10 0XE4 0XC 29 0XC0 29 0XC4 29>,
+				 <&periph_reset_async 11 0xE0 11 0XE4 0X4 17 0XB0 17 0XB4 17>;
 			reset-names = "prst", "rst";
 			channel = <3>;
 			#sound-dai-cells = <0>;
@@ -563,8 +651,8 @@
 			clocks = <&periph_clk AX620X_PCLK_I2S_TDM_S_EB>,
 				 <&periph_clk AX620X_CLK_I2S_REF0_EB>;
 			clock-names = "i2s_pclk", "i2s_mclk";
-			resets = <&periph_reset 12 0x1C 1>,
-				 <&periph_reset 13 0x1C 1>;
+			resets = <&periph_reset_async 12 0xE0 12 0XE4 0XC 30 0XC0 30 0XC4 30>,
+				 <&periph_reset 13 0x1C 1>;  /* slave reset without clk */
 			reset-names = "prst", "rst";
 			channel = <4>;
 			#sound-dai-cells = <0>;
@@ -582,8 +670,8 @@
 				 <&periph_clk AX620X_SCLK_I2S_M_EB>,
 				 <&periph_clk AX620X_CLK_I2S_AUDIO_REF_EB>;
 			clock-names = "i2s_pclk", "i2s_sclk", "i2s_mclk";
-			resets = <&periph_reset 6 0x1C 1>,
-				 <&periph_reset 7 0x1C 1>;
+			resets = <&periph_reset_async 6 0xE0 6 0xE4 0XC 27 0XC0 27 0XC4 27>,
+				 <&periph_reset_async 7 0xE0 7 0XE4 0X4 16 0XB0 16 0XB4 16>;
 			reset-names = "prst", "rst";
 			channel = <1>;
 			#sound-dai-cells = <0>;
@@ -600,8 +688,8 @@
 			clocks = <&periph_clk AX620X_PCLK_I2S_S_EB>,
 				 <&periph_clk AX620X_CLK_I2S_AUDIO_REF_EB>;
 			clock-names = "i2s_pclk", "i2s_mclk";
-			resets = <&periph_reset 8 0x1C 1>,
-				 <&periph_reset 9 0x1C 1>;
+			resets = <&periph_reset_async 8 0xE0 8 0XE4 0XC 28 0XC0 28 0XC4 28>,
+				 <&periph_reset 9 0x1C 1>;  /* slave reset without clk */
 			reset-names = "prst", "rst";
 			channel = <3>;
 			#sound-dai-cells = <0>;
@@ -610,8 +698,8 @@
 		audio_codec: audio_codec@0x23F2000 {
 			compatible = "axera,ax_actt";
 			reg = <0x0 0x23F2000 0x0 0x1000>;
-			resets = <&comm_reset 0 0x54 1>,
-				 <&periph_reset 0 0x18 1>;
+			resets = <&comm_reset_async 0 0x58 0 0X5C 0X24 8 0X28 8 0X2C 8>,
+				 <&periph_reset_async 0 0xD8 0 0XDC 0X4 3 0XB0 3 0XB4 3>;
 			reset-names = "prst", "rst";
 			clocks = <&common_clk AX620X_CLK_AUDIO_TLB_EB>,
 				 <&periph_clk AX620X_CLK_I2S_AUDIO_REF_EB>;
@@ -635,7 +723,7 @@
 			resets = <&periph_reset 4 0x18 1>,
 				 <&periph_reset 5 0x18 1>,
 				 <&periph_reset 6 0x18 1>,
-				 <&periph_reset 8 0x18 1>,
+				 <&periph_reset 8 0xD8 8 0xDC 0xC 12 0xC0 12 0xC4 12>,
 				 <&periph_reset 7 0x18 1>;
 			reset-names = "main_sw_rst", "cnt_sw_rst",
 				      "soft_sw_rst", "sw_prst",
@@ -978,6 +1066,71 @@
 			pin_sleep_setting = <0x2301024 0x60043>;
 			status = "disabled";
 		};
+
+		aclk_cpu_top:aclk_cpu_top {
+			compatible = "axera,aclk_cpu_top";
+			clocks = <&common_clk AX620X_ACLK_CPU_TOP_SEL>;
+			clock-names = "bus_clk";
+			operating-points-v2 = <&aclk_cpu_top_dfs>;
+			status = "disabled";
+		};
+
+		aclk_isp_top:aclk_isp_top {
+			compatible = "axera,aclk_isp_top";
+			clocks = <&common_clk AX620X_ACLK_ISP_TOP_SEL>;
+			clock-names = "bus_clk";
+			operating-points-v2 = <&aclk_isp_top_dfs>;
+			status = "disabled";
+		};
+
+		aclk_vpu_top:aclk_vpu_top {
+			compatible = "axera,aclk_vpu_top";
+			clocks = <&common_clk AX620X_ACLK_VPU_TOP_SEL>;
+			clock-names = "bus_clk";
+			operating-points-v2 = <&aclk_vpu_top_dfs>;
+			status = "disabled";
+		};
+
+		aclk_ocm_top:aclk_ocm_top {
+			compatible = "axera,aclk_ocm_top";
+			clocks = <&common_clk AX620X_ACLK_OCM_TOP_SEL>;
+			clock-names = "bus_clk";
+			operating-points-v2 = <&aclk_ocm_top_dfs>;
+			status = "disabled";
+		};
+
+		aclk_nn_top:aclk_nn_top {
+			compatible = "axera,aclk_nn_top";
+			clocks = <&common_clk AX620X_ACLK_NN_TOP_SEL>;
+			clock-names = "bus_clk";
+			operating-points-v2 = <&aclk_nn_top_dfs>;
+			status = "disabled";
+		};
+
+		aclk_mm_top:aclk_mm_top {
+			compatible = "axera,aclk_mm_top";
+			clocks = <&common_clk AX620X_ACLK_MM_TOP_SEL>;
+			clock-names = "bus_clk";
+			operating-points-v2 = <&aclk_mm_top_dfs>;
+			status = "disabled";
+		};
+
+		clk_isp_mm:clk_isp_mm {
+			compatible = "axera,clk_isp_mm";
+			clocks = <&common_clk AX620X_CLK_ISP_MM_SEL>;
+			clock-names = "bus_clk";
+			operating-points-v2 = <&clk_isp_mm_dfs>;
+			status = "disabled";
+		};
+
+		pclk_top:pclk_top {
+			compatible = "axera,pclk_top";
+			clocks = <&common_clk AX620X_PCLK_TOP_SEL>;
+			clock-names = "bus_clk";
+			operating-points-v2 = <&pclk_top_dfs>;
+			status = "disabled";
+		};
+
 		isp: isp@2400000 {
 			compatible = "axera,proton";
 			reg = <0x0 0x2400000 0x0 0x100000>;
@@ -1030,9 +1183,6 @@
 				 <&cpu_reset 12 0x10 1>,
 				 <&cpu_reset 11 0x10 1>;
 			reset-names = "prst", "arst", "cardrst";
-			clocks = <&cpu_clk AX620X_CLK_EMMC_EB>,
-				 <&cpu_clk AX620X_CLK_EMMC_CARD_EB>;
-			clock-names = "aclk", "cardclk";
 			status = "disabled";
 		};
 		sd: sdhc@104E0000 {
@@ -1045,10 +1195,6 @@
 				 <&flash_reset 16 0x14 1>,
 				 <&flash_reset 15 0x14 1>;
 			reset-names = "prst", "arst", "cardrst";
-			clocks = <&flash_clk AX620X_ACLK_SD_M_EB>,
-				 <&flash_clk AX620X_PCLK_SD_M_EB>,
-				 <&flash_clk AX620X_CLK_SD_CARD_EB>;
-			clock-names = "aclk", "pclk", "cardclk";
 			status = "disabled";
 		};
 		sdio: sdhc@104D0000 {
@@ -1061,10 +1207,6 @@
 				 <&flash_reset 19 0x14 1>,
 				 <&flash_reset 18 0x14 1>;
 			reset-names = "prst", "arst", "cardrst";
-			clocks = <&flash_clk AX620X_ACLK_SDIO_M_EB>,
-				 <&flash_clk AX620X_PCLK_SDIO_M_EB>,
-				 <&flash_clk AX620X_CLK_SDIO_M_CARD_EB>;
-			clock-names = "aclk", "pclk", "cardclk";
 			status = "disabled";
 		};
 
@@ -1184,7 +1326,7 @@
 
 		bwlimiter: bwlimiter {
 			compatible = "axera,bw_limiter";
-			status = "disabled";
+			status = "okay";
 		};
 
 		ive: ive@4406000 {
@@ -1261,7 +1403,7 @@
 			interrupts = <GIC_SPI 92 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&vpu_clk AX620X_CLK_VDEC_EB>;
 			clock-names = "vdec_clk";
-			resets = <&vpu_reset 6 0xC 1>;
+			resets = <&vpu_reset_async 6 0x11C 6 0x120 0x8 6 0x114 6 0x118 6>;
 			reset-names = "vdec_rst";
 			operating-points-v2 = <&vdec_dfs>;
 			status = "disabled";
@@ -1274,7 +1416,7 @@
 			clocks = <&vpu_clk AX620X_CLK_VENC_EB>;
 			clock-names = "venc_clk";
 			interrupts = <GIC_SPI 93 IRQ_TYPE_LEVEL_HIGH>;
-			resets = <&vpu_reset 7 0xC 1>;
+			resets = <&vpu_reset_async 7 0x11C 7 0x120 0x8 7 0x114 7 0x118 7>;
 			reset-names = "venc_rst";
 			operating-points-v2 = <&venc_dfs>;
 			status = "disabled";
@@ -1288,7 +1430,7 @@
 			interrupts = <GIC_SPI 91 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&vpu_clk AX620X_CLK_JENC_EB>;
 			clock-names = "jenc_clk";
-			resets = <&vpu_reset 4 0xC 1>;
+			resets = <&vpu_reset_async 4 0x11C 4 0x120 0x8 4 0x114 4 0x118 4>;
 			reset-names = "jenc_rst";
 			operating-points-v2 = <&jenc_dfs>;
 			status = "disabled";
@@ -1311,15 +1453,15 @@
 			clock-names = "vpp_clk", "vpp_pclk", "cmd_clk", "cmd_pclk", "scl0_clk", "scl1_clk",
 				      "scl2_clk", "scl3_clk", "scl4_clk";
 			resets = <&mm_reset 21 0x10 1>,
-				 <&mm_reset 22 0x10 1>,
-				 <&mm_reset 23 0x10 1>,
-				 <&mm_reset 24 0x10 1>,
-				 <&mm_reset 25 0x10 1>,
-				 <&mm_reset 26 0x10 1>,
-				 <&mm_reset 27 0x10 1>,
+				 <&mm_reset_async 22 0xC4 22 0xC8 0x8 13 0xB4 13 0xB8 13>,
+				 <&mm_reset_async 23 0xC4 23 0xC8 0x8 14 0xB4 14 0xB8 14>,
+				 <&mm_reset_async 24 0xC4 24 0xC8 0x8 15 0xB4 15 0xB8 15>,
+				 <&mm_reset_async 25 0xC4 25 0xC8 0x8 16 0xB4 16 0xB8 16>,
+				 <&mm_reset_async 26 0xC4 26 0xC8 0x8 17 0xB4 17 0xB8 17>,
+				 <&mm_reset_async 27 0xC4 27 0xC8 0x8 25 0xB4 25 0xB8 25>,
 				 <&mm_reset 28 0x10 1>,
-				 <&mm_reset 4 0x10 1>,
-				 <&mm_reset 5 0x10 1>;
+				 <&mm_reset_async 4 0xC4 4 0xC8 0x8 19 0xB4 19 0xB8 19>,
+				 <&mm_reset_async 5 0xC4 5 0xC8 0x8 3 0xB4 3 0xB8 3>;
 			reset-names = "vpp_rst0", "vpp_rst1", "vpp_rst2",
 				      "vpp_rst3", "vpp_rst4", "vpp_rst5",
 				      "vpp_rst6", "vpp_rst7", "vpp_rst8", "vpp_rst9";
@@ -1339,10 +1481,10 @@
 				 <&mm_clk AX620X_PCLK_CMD_EB>;
 			clock-names = "gdc_clk", "gdc_pclk", "cmd_clk", "cmd_pclk";
 			resets = <&mm_reset 13 0x10 1>,
-				 <&mm_reset 14 0x10 1>,
+				 <&mm_reset_async 14 0xC4 14 0xC8 0x8 22 0xB4 22 0xB8 22>,
 				 <&mm_reset 15 0x10 1>,
-				 <&mm_reset 4 0x10 1>,
-				 <&mm_reset 5 0x10 1>;
+				 <&mm_reset_async 4 0xC4 4 0xC8 0x8 19 0xB4 19 0xB8 19>,
+				 <&mm_reset_async 5 0xC4 5 0xC8 0x8 3 0xB4 3 0xB8 3>;
 			reset-names = "gdc_rst0", "gdc_rst1", "gdc_rst2", "gdc_rst3", "gdc_rst4";
 			operating-points-v2 = <&gdc_dfs>;
 			status = "disabled";
@@ -1358,10 +1500,10 @@
 				 <&mm_clk AX620X_CLK_CMD_EB>,
 				 <&mm_clk AX620X_PCLK_CMD_EB>;
 			clock-names = "tdp_clk", "tdp_pclk", "cmd_clk", "cmd_pclk";
-			resets = <&mm_reset 19 0x10 1>,
-				 <&mm_reset 20 0x10 1>,
-				 <&mm_reset 4 0x10 1>,
-				 <&mm_reset 5 0x10 1>;
+			resets = <&mm_reset_async 19 0xC4 19 0xC8 0x8 24 0xB4 24 0xB8 24>,
+				 <&mm_reset_async 20 0xC4 20 0xC8 0x8 11 0xB4 11 0xB8 11>,
+				 <&mm_reset_async 4 0xC4 4 0xC8 0x8 19 0xB4 19 0xB8 19>,
+				 <&mm_reset_async 5 0xC4 5 0xC8 0x8 3 0xB4 3 0xB8 3>;
 			reset-names = "tdp_rst0", "tdp_rst1", "tdp_rst2", "tdp_rst3";
 			operating-points-v2 = <&tdp_dfs>;
 			status = "disabled";
@@ -1418,11 +1560,11 @@
 				 <&mm_clk AX620X_PCLK_CMD_EB>,
 				 <&mm_clk AX620X_CLK_CMD_EB>;
 			clock-names = "clk_dpu", "pclk_dpu", "clk_dpi", "pclk_cdma", "clk_cdma";
-			resets = <&mm_reset 12 0x10 1>,
-				 <&mm_reset 11 0x10 1>,
-				 <&mm_reset 10 0x10 1>,
-				 <&mm_reset 4 0x10 1>,
-				 <&mm_reset 5 0x10 1>;
+			resets = <&mm_reset_async 12 0xC4 12 0xC8 0x8 4 0xB4 4 0xB8 4>,
+				 <&mm_reset_async 11 0xC4 11 0xC8 0x8 20 0xB4 20 0xB8 20>,
+				 <&mm_reset_async 10 0xC4 10 0xC8 0x4 2 0xAC 2 0xB0 2>,
+				 <&mm_reset_async 4 0xC4 4 0xC8 0x8 19 0xB4 19 0xB8 19>,
+				 <&mm_reset_async 5 0xC4 5 0xC8 0x8 3 0xB4 3 0xB8 3>;
 			reset-names = "mm_dpu_rst", "mm_dpu_prst", "mm_dpu_out_rst", "mm_cdma_prst","mm_cdma_rst";
 			interrupts = <GIC_SPI 97 IRQ_TYPE_LEVEL_HIGH>;
 			id = <0>;
@@ -1441,9 +1583,9 @@
 				 <&mm_clk AX620X_PCLK_DPU_LITE_EB>,
 				 <&mm_clk AX620X_CLK_DPU_LITE_OUT_EB>;
 			clock-names = "clk_dpu", "pclk_dpu", "clk_dpi";
-			resets = <&mm_reset 9 0x10 1>,
-				 <&mm_reset 8 0x10 1>,
-				 <&mm_reset 7 0x10 1>;
+			resets = <&mm_reset_async 9 0xC4 9 0xC8 0x8 5 0xB4 5 0xB8 5>,
+				 <&mm_reset_async 8 0xC4 8 0xC8 0x8 21 0xB4 21 0xB8 21>,
+				 <&mm_reset_async 7 0xC4 7 0xC8 0x4 1 0xAC 1 0xB0 1>;
 			reset-names = "mm_dpu_rst", "mm_dpu_prst", "mm_dpu_out_rst";
 			interrupts = <GIC_SPI 98 IRQ_TYPE_LEVEL_HIGH>;
 			id = <1>;
@@ -1490,7 +1632,7 @@
 			};
 		};
 
-		bt_dpi0: bt_dpi@0 {
+		bt_dpi0: bt_dpi0@0 {
 			compatible = "axera,bt-dpi";
 			reg = <0x0 0x2340000 0x0 0x10000>,
 			      <0x0 0x10030000 0x0 0x10000>,
@@ -1501,10 +1643,10 @@
 				 <&flash_clk AX620X_CLK_1X_VO0_EB>,
 				 <&flash_clk AX620X_CLK_NX_VO0_EB>;
 			clock-names = "comm_clk_1x", "comm_clk_nx", "flash_clk_1x", "flash_clk_nx";
-			resets = <&comm_reset 26 0x54 1>,
-				 <&comm_reset 27 0x54 1>,
-				 <&flash_reset 26 0x14 1>,
-				 <&flash_reset 27 0x14 1>;
+			resets = <&comm_reset_async 26 0x58 26 0x5C 0x24 6 0x28 6 0x2C 6>,
+				 <&comm_reset_async 27 0x58 27 0x5c 0x24 12 0x28 12 0x2C 12>,
+				 <&flash_reset_async 26 0x4014 26 0x8014 0x4 0 0x4004 0 0x8004 0>,
+				 <&flash_reset_async 27 0x4014 27 0x8014 0x4 7 0x4004 7 0x8004 7>;
 			reset-names = "cm_dpu_1x_rst", "cm_dpu_nx_rst", "flash_dpu_1x_rst", "flash_dpu_nx_rst";
 			id = <0>;
 			#address-cells = <1>;
@@ -1525,7 +1667,7 @@
 			};
 		};
 
-		bt_dpi1: bt_dpi@1 {
+		bt_dpi1: bt_dpi1@0 {
 			compatible = "axera,bt-dpi";
 			reg = <0x0 0x2340000 0x0 0x10000>,
 			      <0x0 0x10030000 0x0 0x10000>,
@@ -1536,12 +1678,13 @@
 				 <&flash_clk AX620X_CLK_1X_VO0_EB>,
 				 <&flash_clk AX620X_CLK_NX_VO0_EB>;
 			clock-names = "comm_clk_1x", "comm_clk_nx", "flash_clk_1x", "flash_clk_nx";
-			resets = <&comm_reset 28 0x54 1>,
-				 <&comm_reset 29 0x54 1>,
-				 <&flash_reset 26 0x14 1>,
-				 <&flash_reset 27 0x14 1>;
+			resets = <&comm_reset_async 28 0x58 28 0x5C 0x24 7 0x28 7 0x2C 7>,
+				 <&comm_reset_async 29 0x58 29 0x5C 0x24 13 0x28 13 0x2C 13>,
+				 <&flash_reset_async 26 0x4014 26 0x8014 0x4 0 0x4004 0 0x8004 0>,
+				 <&flash_reset_async 27 0x4014 27 0x8014 0x4 7 0x4004 7 0x8004 7>;
 			reset-names = "cm_dpu_1x_rst", "cm_dpu_nx_rst", "flash_dpu_1x_rst", "flash_dpu_nx_rst";
 			id = <1>;
+			dmux-sel = <1>;
 			#address-cells = <1>;
 			#size-cells = <0>;
 			status = "disabled";
@@ -1577,14 +1720,15 @@
 			clock-names = "dsi_pclk", "dsi_txesc_clk", "dsi_sys_clk",
 				      "dphy_ref_clk", "dphy_esc_clk", "dphy_hs_clk",
 				      "comm_dphytx_tlb_clk";
-			resets = <&dispc_reset 12 0xc 1>,
-				 <&dispc_reset 10 0xc 1>,
-				 <&dispc_reset 9  0xc 1>,
-				 <&dispc_reset 8  0xc 1>,
-				 <&dispc_reset 6  0xc 1>,
-				 <&dispc_reset 3  0xc 1>;
+			resets = <&dispc_reset_async 12 0xB8 12 0xBC 0x8 8 0xB0 8 0xB4 8>,
+				 <&dispc_reset 10 0xc 1>, /* rst_dsi_tx_pix_n without clk reg */
+				 <&dispc_reset_async 9 0xB8 9 0xBC 0x8 6 0xB0 6 0xB4 6>,
+				 <&dispc_reset_async 8 0xB8 8 0xBC 0x8 5 0xB0 5 0xB4 5>,
+				 <&dispc_reset 7 0xc 1>, /* rst_dsi_rx_esc_n without clk reg */
+				 <&dispc_reset 6 0xc 1>, /* rst_dphytx_n without clk reg */
+				 <&dispc_reset_async 3 0xB8 3 0xBC 0x8 2 0xB0 2 0xB4 2>;
 			reset-names = "dispc_dsi_prst", "dispc_txpix_rst",
-				      "dispc_txesc_rst", "dispc_sys_rst",
+				      "dispc_txesc_rst", "dispc_sys_rst", "dispc_dsi_rx_esc_rst",
 				      "dispc_dphytx_rst", "dispc_dphy2dsi_rst";
 			max-lanes = <4>;
 			interrupts = <GIC_SPI 23 IRQ_TYPE_LEVEL_HIGH>;
@@ -1645,9 +1789,9 @@
 				 <&common_clk AX620X_CLK_DPHYTX_TLB_EB>;
 			clock-names = "lvds_p_clk", "dphytx_pll_div7_clk", "dphytx_pll_clk",
 				      "dphytx_ref_clk", "comm_dphytx_tlb_clk";
-			resets = <&dispc_reset 13 0xc 1>,
-				 <&dispc_reset 5 0xc 1>,
-				 <&dispc_reset 4 0xc 1>;
+			resets = <&dispc_reset_async 13 0xB8 13 0xBC 0x8 9 0xB0 9 0xB4 9>,
+				 <&dispc_reset_async 5 0xB8 5 0xBC 0x8 3 0xB0 3 0xB4 3 >,
+				 <&dispc_reset_async 4 0xB8 4 0xBC 0x8 4 0xB0 4 0xB4 4>;
 			reset-names = "lvds_p_rst", "dphytx_pll_rst", "dphytx_pll_div7_rst";
 			interrupts = <GIC_SPI 22 IRQ_TYPE_LEVEL_HIGH>;
 			#address-cells = <1>;
@@ -1686,6 +1830,20 @@
 					panel_in_0: endpoint@0 {
 						remote-endpoint = <&virt_out_0>;
 					};
+				};
+			};
+		};
+
+		panel1: panel@1 {
+			compatible = "axera,simple-panel";
+			id = <1>;
+			status = "disabled";
+
+			ports {
+				#address-cells = <1>;
+				#size-cells = <0>;
+
+				port@0 {
 					panel_in_1: endpoint@1 {
 						remote-endpoint = <&virt_out_1>;
 					};
@@ -1709,10 +1867,19 @@
 				};
 			};
 		};
+		gzipd: gzipd@10410000 {
+			compatible = "axera,ax_gzipd";
+			reg = <0x0 0x10410000 0x1 0x0000>;
+			reg-names = "reg_gzipd";
+			interrupts = <GIC_SPI 81 IRQ_TYPE_LEVEL_HIGH>;
+			status = "okay";
 
-		riscv: riscv {
-			compatible = "axera,riscv";
-			status = "disabled";
+			clocks = <&flash_clk AX620X_CLK_GZIPD_EB>,
+					 <&flash_clk AX620X_CLK_GZIPD_CORE_EB>;
+			clock-names = "gzipd_clk", "gzipd_core_clk";
+			resets = <&flash_reset 10 0x14 1>,
+					 <&flash_reset 11 0x14 1>;
+			reset-names = "gzipd_rst", "gzipd_core_rst";
 		};
 	};
 };
