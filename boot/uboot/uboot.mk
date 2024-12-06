@@ -1,7 +1,7 @@
-define MY_UBOOT_PRE_BUILD_HOOK
-	$(Q)cp $(BR2_EXTERNAL_M5STACK_PATH)/board/m5stack/module-LLM/pinmux/* $(UBOOT_DIR)/board/axera/ax620e_emmc/
-endef
-UBOOT_PRE_BUILD_HOOKS += MY_UBOOT_PRE_BUILD_HOOK
+#define MY_UBOOT_PRE_BUILD_HOOK
+#	$(Q)cp $(BR2_EXTERNAL_M5STACK_PATH)/board/m5stack/module-LLM/pinmux/* $(UBOOT_DIR)/board/axera/ax620e_emmc/
+#endef
+#UBOOT_PRE_BUILD_HOOKS += MY_UBOOT_PRE_BUILD_HOOK
 
 
 define MY_UBOOT_POST_INSTALL_IMAGES_HOOK

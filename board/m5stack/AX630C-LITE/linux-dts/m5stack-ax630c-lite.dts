@@ -217,6 +217,16 @@
 		aw99703,emisel = <0x02>; /*  升压控制 EMISEL */
 		status = "okay";
 	};
+
+	bq27220@55{
+		// pinctrl-names = "default";
+		// pinctrl-0 = <&pinctrl_bq27220>;		
+		compatible = "ti,bq27220";
+		reg = <0x55>;
+		// interrupt-parent = <&gpio7>;
+		// interrupts = <8 IRQ_TYPE_LEVEL_LOW>;
+		status = "diabled";
+	};
 };
 
 // &i2c2 {
