@@ -255,7 +255,7 @@
 	axera,uart-16550-compatible = <1>;
 	/delete-property/dmas;
 	/delete-property/dma-names;
-	status = "disabled";
+	status = "okay";
 };
 
 &wdt0 {
