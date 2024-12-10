@@ -3,6 +3,10 @@
 #
 # SPDX-License-Identifier: MIT
 
+if [ -z "${EXT_ROOTFS_SIZE}" ]; then
+    export EXT_ROOTFS_SIZE=30606884864
+fi
+
 [ -d 'build_Module_LLM_ubuntu22_04' ] || mkdir -p build_Module_LLM_ubuntu22_04/ubuntu-base-22.04.5-base-arm64
 ./creat_Module_LLM_buidlroot_image.sh && cp build_Module_LLM_buidlroot/buildroot/output/axera-image build_Module_LLM_ubuntu22_04/ -a
 [ -d 'build_Module_LLM_ubuntu22_04/axera-image' ] || { echo "not found axera-image" && exit -1; }
@@ -32,7 +36,7 @@ sudo rm rootfs/var/deb-archives -rf
 
 sudo rm axera-image/rootfs_sparse.ext4
 
-sudo ../bin/make_ext4fs -l 30606884864 -s axera-image/rootfs_sparse.ext4 ubuntu-base-22.04.5-base-arm64/
+sudo ../bin/make_ext4fs -l ${EXT_ROOTFS_SIZE} -s axera-image/rootfs_sparse.ext4 ubuntu-base-22.04.5-base-arm64/
 
 cd axera-image
 zip -r ../output.zip .

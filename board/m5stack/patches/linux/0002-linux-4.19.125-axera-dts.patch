@@ -1,5 +1,0 @@
---- a/arch/arm64/boot/dts/axera/Makefile	2024-12-04 14:25:14.094728675 +0800
-+++ b/arch/arm64/boot/dts/axera/Makefile	2024-12-04 14:26:08.763934739 +0800
-@@ -1 +1 @@
--dtb-$(CONFIG_ARCH_AXERA) += $(PROJECT).dtb
-+dtb-$(CONFIG_ARCH_AXERA) += AX630C_emmc_arm64_k419.dtb AX630C_fastemmc_arm64_k419.dtb AX630C_nand_arm64_k419.dtb

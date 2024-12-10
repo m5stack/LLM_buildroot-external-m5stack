@@ -1,8 +1,11 @@
-define MY_LINUX_PRE_BUILD_HOOK
-	$(Q)cp $(BR2_EXTERNAL_M5STACK_PATH)/board/m5stack/osal_all_code.o $(LINUX_DIR)/drivers/soc/axera/osal/osal_all_code.o
-endef
+# define MY_LINUX_PRE_BUILD_HOOK
+# 	$(Q)cp $(BR2_EXTERNAL_M5STACK_PATH)/board/m5stack/osal_all_code.o $(LINUX_DIR)/drivers/soc/axera/osal/osal_all_code.o
+# endef
 
-LINUX_PRE_BUILD_HOOKS += MY_LINUX_PRE_BUILD_HOOK
+# LINUX_PRE_BUILD_HOOKS += MY_LINUX_PRE_BUILD_HOOK
+
+# LINUX_ARCH_PATH = $(LINUX_DIR)/build/linux-4.19.125/arch/arm64
+
 
 define MY_LINUX_TARGET_FINALIZE_HOOK
 	$(BR2_EXTERNAL_M5STACK_PATH)/tools/bin/ax_gzip -9 $(BINARIES_DIR)/Image
