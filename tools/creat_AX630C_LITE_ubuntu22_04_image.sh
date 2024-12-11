@@ -39,7 +39,7 @@ sudo rm axera-image/rootfs_sparse.ext4
 
 
 sudo tar zxf ../../board/m5stack/soc.tar.gz -C rootfs/soc
-
+[ -f "../../board/m5stack/opt.tar.gz" ] && sudo tar zxf ../../board/m5stack/opt.tar.gz -C ${TARGET_DIR}/rootfs
 
 sudo ../bin/make_ext4fs -l ${EXT_ROOTFS_SIZE} -s axera-image/rootfs_sparse.ext4 ubuntu-base-22.04.5-base-arm64/
 
