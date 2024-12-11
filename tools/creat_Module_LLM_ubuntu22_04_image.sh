@@ -12,10 +12,10 @@ fi
 [ -d 'build_Module_LLM_ubuntu22_04/axera-image' ] || { echo "not found axera-image" && exit -1; }
 
 pushd build_Module_LLM_ubuntu22_04
-[ -f 'ubuntu-base-22.04.5-base-arm64.tar.gz' ] || wget http://cdimage.ubuntu.com/ubuntu-base/releases/22.04/release/ubuntu-base-22.04.5-base-arm64.tar.gz 
-[ -f 'ubuntu-base-22.04.5-base-arm64.tar.gz' ] || { echo "not found ubuntu-base-22.04.5-base-arm64.tar.gz" && exit -1; }
+[ -f '../ubuntu-base-22.04.5-base-arm64.tar.gz' ] || { wget http://cdimage.ubuntu.com/ubuntu-base/releases/22.04/release/ubuntu-base-22.04.5-base-arm64.tar.gz ; mv ubuntu-base-22.04.5-base-arm64.tar.gz ../ubuntu-base-22.04.5-base-arm64.tar.gz ; }
+[ -f '../ubuntu-base-22.04.5-base-arm64.tar.gz' ] || { echo "not found ubuntu-base-22.04.5-base-arm64.tar.gz" && exit -1; }
 [ -d 'ubuntu-base-22.04.5-base-arm64' ] || mkdir ubuntu-base-22.04.5-base-arm64
-tar -zxpf ubuntu-base-22.04.5-base-arm64.tar.gz -C ubuntu-base-22.04.5-base-arm64
+tar -zxpf ../ubuntu-base-22.04.5-base-arm64.tar.gz -C ubuntu-base-22.04.5-base-arm64
 
 ln -s ubuntu-base-22.04.5-base-arm64 rootfs
 
@@ -35,6 +35,11 @@ sudo sed -i '1a 127.0.0.1       m5stack-LLM' rootfs/etc/hosts
 sudo rm rootfs/var/deb-archives -rf
 
 sudo rm axera-image/rootfs_sparse.ext4
+
+
+sudo tar zxf ../board/m5stack/soc.tar.gz -C rootfs/soc
+
+
 
 sudo ../bin/make_ext4fs -l ${EXT_ROOTFS_SIZE} -s axera-image/rootfs_sparse.ext4 ubuntu-base-22.04.5-base-arm64/
 

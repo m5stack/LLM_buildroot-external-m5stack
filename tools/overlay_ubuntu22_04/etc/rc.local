@@ -1,5 +1,9 @@
 #!/bin/sh
-#[ "$1" = "stop" ] && exit 0
+/usr/local/m5stack/startup-script.sh
+/soc/scripts/startup-script.sh
 
 
-exit 0
+
+chown root:telnetd /usr/lib/telnetlogin
+chmod 4754 /usr/lib/telnetlogin
+

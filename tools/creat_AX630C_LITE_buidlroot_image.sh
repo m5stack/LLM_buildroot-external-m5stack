@@ -4,9 +4,12 @@
 # SPDX-License-Identifier: MIT
 
 
-
 clone_buildroot() {
-    [ -d 'buildroot' ] || git clone https://github.com/bootlin/buildroot.git -b st/2023.02.10
+    if [ -d '../buildroot' ] ; then
+        [ -d 'buildroot' ] || cp -r ../buildroot buildroot
+    else
+        [ -d 'buildroot' ] || git clone https://github.com/bootlin/buildroot.git -b st/2023.02.10
+    fi
     [ -d 'buildroot' ] || { echo "not found buildroot" && exit -1; }
     pushd buildroot
     hostname=$(hostname)

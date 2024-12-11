@@ -6,16 +6,20 @@
 
 
 clone_buildroot() {
-    [ -d 'buildroot' ] || git clone https://github.com/bootlin/buildroot.git -b st/2023.02.10
-    [ -d 'buildroot' ] || { echo "not found buildroot" && exit -1; }
-    pushd buildroot
-    hostname=$(hostname)
-    if [ "$hostname" = "nihao-z690" ]; then
-        [ -f 'dl.7z' ] || wget https://m5stack.oss-cn-shenzhen.aliyuncs.com/resource/linux/llm/dl.7z
-        [ -d 'dl' ] || 7z x dl.7z -odl
-        [ -d 'dl' ] || { echo "not found dl" && exit -1; }
+    if [ -d '../buildroot' ] ; then
+        [ -d 'buildroot' ] || cp -r ../buildroot buildroot 
+    else
+        [ -d 'buildroot' ] || git clone https://github.com/bootlin/buildroot.git -b st/2023.02.10
     fi
-    popd
+        [ -d 'buildroot' ] || { echo "not found buildroot" && exit -1; }
+        pushd buildroot
+        hostname=$(hostname)
+        if [ "$hostname" = "nihao-z690" ]; then
+            [ -f 'dl.7z' ] || wget https://m5stack.oss-cn-shenzhen.aliyuncs.com/resource/linux/llm/dl.7z
+            [ -d 'dl' ] || 7z x dl.7z -odl
+            [ -d 'dl' ] || { echo "not found dl" && exit -1; }
+        fi
+        popd
 }
 
 make_buildroot() {

@@ -16,7 +16,7 @@ main()
 	rm ${BINARIES_DIR}/rootfs -rf
 
 	mkdir -p ${BINARIES_DIR}/../axera-image
-	tar zxvf ${BR2_EXTERNAL_M5STACK_PATH}/board/m5stack/image_overlay.tar.gz -C ${BINARIES_DIR}/../axera-image
+	tar zxf ${BR2_EXTERNAL_M5STACK_PATH}/board/m5stack/image_overlay.tar.gz -C ${BINARIES_DIR}/../axera-image
 
 	cp ${BINARIES_DIR}/u-boot_signed.bin ${BINARIES_DIR}/../axera-image
 	cp ${BINARIES_DIR}/u-boot_b_signed.bin ${BINARIES_DIR}/../axera-image
