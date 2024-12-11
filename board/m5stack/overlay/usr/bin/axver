@@ -1,0 +1,65 @@
+#!/bin/sh
+
+version_flag="Axera version"
+so_default_path=/soc/lib
+ko_default_path=/soc/ko
+
+
+function usage(){
+    echo "axver so_path ko_path"
+}
+
+if [ $# -lt 1 ]; then
+    if [ ! -d $so_default_path ]; then
+        so_default_path=/opt/lib
+    fi
+
+    if [ ! -d $so_default_path ]; then
+        echo "[error] cannot find $so_default_path"
+        usage
+    fi
+
+    if [ ! -d $ko_default_path ]; then
+        ko_default_path=/opt/ko
+    fi
+
+    if [ ! -d $ko_default_path ]; then
+        echo "[error] cannot find $ko_default_path"
+        usage
+    fi
+fi
+
+function get_file_version(){
+    version=$(strings $1 | grep "$version_flag")
+    echo "$1: $version"
+}
+
+function get_version_from_folder {
+    fpath=${1%*/}
+    for f in $(ls $fpath/*.[ksKS][oO])
+    do
+        get_file_version $f
+    done
+}
+
+if [ $# -lt 1 ];
+then
+    get_version_from_folder $so_default_path
+    get_version_from_folder $ko_default_path
+    exit
+else
+    for i in $@
+    do
+        f=$i
+        if [ -f $f ] 
+        then
+            get_file_version $f
+        elif [ -d $f ]
+        then
+            get_version_from_folder $1
+        fi
+
+    done
+fi
+
+

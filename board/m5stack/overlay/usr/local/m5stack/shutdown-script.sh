@@ -1,4 +1,6 @@
 #!/bin/sh
-/usr/sbin/i2cset -y -f 4 0x30 0x02 0x00
-/usr/sbin/i2cset -y -f 4 0x30 0x03 0x00
-/usr/sbin/i2cset -y -f 4 0x30 0x04 0x00
+/usr/local/m5stack/bin/ax_usb_adb_event.sh >> /dev/null 2>&1 &
+
+
+
+exit 0
