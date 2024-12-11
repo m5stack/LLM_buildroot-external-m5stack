@@ -37,7 +37,7 @@ sudo rm rootfs/var/deb-archives -rf
 sudo rm axera-image/rootfs_sparse.ext4
 
 
-sudo tar zxf ../board/m5stack/soc.tar.gz -C rootfs/soc
+sudo tar zxf ../../board/m5stack/soc.tar.gz -C rootfs/soc
 
 
 

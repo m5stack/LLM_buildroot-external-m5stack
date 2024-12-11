@@ -38,7 +38,7 @@ sudo rm rootfs/var/deb-archives -rf
 sudo rm axera-image/rootfs_sparse.ext4
 
 
-sudo tar zxf ../board/m5stack/soc.tar.gz -C rootfs/soc
+sudo tar zxf ../../board/m5stack/soc.tar.gz -C rootfs/soc
 
 
 sudo ../bin/make_ext4fs -l ${EXT_ROOTFS_SIZE} -s axera-image/rootfs_sparse.ext4 ubuntu-base-22.04.5-base-arm64/
