@@ -1,0 +1,40 @@
+#!/bin/sh
+
+MODULES="espc6wifi"
+
+start() {
+	printf 'Starting %s:' "$MODULES"
+
+	insmod /lib/modules/4.19.125/extra/esp32_sdio.ko
+	/sbin/devmem 0x02304084 32 0x00060083
+	/sbin/devmem 0x02304090 32 0x00060083
+	/sbin/devmem 0x4801010 32 0x3
+	/sbin/devmem 0x480100c 32 0x3
+	
+	echo ' OK'
+}
+
+stop() {
+	printf 'Stopping %s: ' "$MODULES"
+
+	echo 'OK'
+}
+
+restart() {
+	stop
+	sleep 1
+	start
+}
+
+case "$1" in
+	start|stop|restart)
+		"$1";;
+	reload)
+		# Restart, since there is no true "reload" feature.
+		restart;;
+	*)
+		echo "Usage: $0 {start|stop|restart|reload}"
+		exit 1
+esac
+
+exit $?

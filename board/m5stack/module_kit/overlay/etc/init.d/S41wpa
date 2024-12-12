@@ -1,0 +1,46 @@
+#!/bin/sh
+
+MODULES="wpa"
+
+check_and_restart() {
+    while true; do
+        if ! ps aux | grep "wpa_supplicant -i wlan0" | grep -v grep > /dev/null; then
+            /usr/sbin/wpa_supplicant -i wlan0 -B -c /etc/wpa_supplicant.conf
+        fi
+        sleep 3
+    done
+}
+
+
+
+start() {
+	printf 'Starting %s:' "$MODULES"
+	check_and_restart &> /dev/null &
+	echo ' OK'
+}
+
+stop() {
+	printf 'Stopping %s: ' "$MODULES"
+	killall check_and_restart
+	killall wpa_supplicant
+	echo 'OK'
+}
+
+restart() {
+	stop
+	sleep 1
+	start
+}
+
+case "$1" in
+	start|stop|restart)
+		"$1";;
+	reload)
+		# Restart, since there is no true "reload" feature.
+		restart;;
+	*)
+		echo "Usage: $0 {start|stop|restart|reload}"
+		exit 1
+esac
+
+exit $?
