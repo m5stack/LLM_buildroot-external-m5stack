@@ -2,8 +2,7 @@
 /usr/local/m5stack/startup-script.sh
 /soc/scripts/startup-script.sh
 
+sh -c ". /etc/profile ; /soc/scripts/usb-adb.sh start"
 
 
-chown root:telnetd /usr/lib/telnetlogin
-chmod 4754 /usr/lib/telnetlogin
 

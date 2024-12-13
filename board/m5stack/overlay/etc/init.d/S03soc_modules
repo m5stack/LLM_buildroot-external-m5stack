@@ -1,18 +1,22 @@
 #!/bin/sh
 
-MODULES="espc6wifi"
+MODULES="soc_modules"
+
+load_unload() {
+	chmod 755 /soc/scripts/auto_load_all_drv.sh
+	/soc/scripts/auto_load_all_drv.sh
+}
 
 start() {
 	printf 'Starting %s:' "$MODULES"
 
-	insmod /lib/modules/4.19.125/extra/esp32_sdio.ko
-	sh -c 'sleep 1 ; /sbin/devmem 0x02304084 32 0x00060083 ; /sbin/devmem 0x02304090 32 0x00060083 ; /sbin/devmem 0x4801010 32 0x3 ; /sbin/devmem 0x480100c 32 0x0 ; sleep 1 ; /sbin/devmem 0x480100c 32 0x3 ' &> /dev/null &
-	
 	echo ' OK'
 }
 
 stop() {
 	printf 'Stopping %s: ' "$MODULES"
+
+	load_unload unload
 
 	echo 'OK'
 }
