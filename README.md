@@ -2,12 +2,12 @@
 
 include uboot linux-kernel msp
 This repository is a Buildroot `BR2_EXTERNAL` tree dedicated to
-supporting the [STMicroelectronics](https://www.st.com)
-[STM32MP1](https://www.st.com/en/microcontrollers-microprocessors/stm32mp1-series.html)
+supporting the [M5Stack](https://m5stack.com/)
+[AX630C](https://docs.m5stack.com/en/module/Module-LLM)
 platforms. Using this project is not strictly necessary as Buildroot
-itself has support for STM32MP1, but this `BR2_EXTERNAL` tree provide
+itself has support for AX630C, but this `BR2_EXTERNAL` tree provide
 example configurations demonstrating how to use the different features
-of the STM32MP1 platforms.
+of the AX630C platforms.
 
 ## Available configurations
 
@@ -137,7 +137,7 @@ buildroot/ $ make
 ```
 
 This will automaticaly download and build the entire Linux system for
-your STM32MP1 platform: cross-compilation toolchain, firmware,
+your AX630C platform: cross-compilation toolchain, firmware,
 bootloader, Linux kernel, root filesystem. It might take between 30
 and 60 minutes depending on the configuration you have chosen and how
 powerful your machine is.
