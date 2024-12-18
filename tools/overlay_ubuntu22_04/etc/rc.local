@@ -1,9 +1,6 @@
-#!/bin/sh
-/usr/local/m5stack/startup-script.sh
-/soc/scripts/startup-script.sh
+#!/bin/bash
+bash /soc/scripts/auto_load_all_drv.sh
+bash /usr/local/m5stack/startup-script.sh
+bash /soc/scripts/startup-script.sh
 
-
-
-chown root:telnetd /usr/lib/telnetlogin
-chmod 4754 /usr/lib/telnetlogin
-
+bash -c ". /etc/profile ; /soc/scripts/usb-adb.sh start"

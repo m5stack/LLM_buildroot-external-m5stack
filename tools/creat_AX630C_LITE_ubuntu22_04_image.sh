@@ -7,11 +7,11 @@ if [ -z "${EXT_ROOTFS_SIZE}" ]; then
     export EXT_ROOTFS_SIZE=30606884864
 fi
 
-[ -d 'build_Module_LITE_ubuntu22_04' ] || mkdir -p build_Module_LITE_ubuntu22_04/ubuntu-base-22.04.5-base-arm64
-./creat_AX630C_LITE_buidlroot_image.sh && cp build_AX630C_LITE_buidlroot/buildroot/output/axera-image build_Module_LITE_ubuntu22_04/ -a
-[ -d 'build_Module_LITE_ubuntu22_04/axera-image' ] || { echo "not found axera-image" && exit -1; }
+[ -d 'build_AX630C_LITE_ubuntu22_04' ] || mkdir -p build_AX630C_LITE_ubuntu22_04/ubuntu-base-22.04.5-base-arm64
+./creat_AX630C_LITE_buidlroot_image.sh && sudo cp build_AX630C_LITE_buidlroot/buildroot/output/axera-image build_AX630C_LITE_ubuntu22_04/ -a
+[ -d 'build_AX630C_LITE_ubuntu22_04/axera-image' ] || { echo "not found axera-image" && exit -1; }
 
-pushd build_Module_LITE_ubuntu22_04
+pushd build_AX630C_LITE_ubuntu22_04
 [ -f '../ubuntu-base-22.04.5-base-arm64.tar.gz' ] || { wget http://cdimage.ubuntu.com/ubuntu-base/releases/22.04/release/ubuntu-base-22.04.5-base-arm64.tar.gz ; mv ubuntu-base-22.04.5-base-arm64.tar.gz ../ubuntu-base-22.04.5-base-arm64.tar.gz ; }
 [ -f '../ubuntu-base-22.04.5-base-arm64.tar.gz' ] || { echo "not found ubuntu-base-22.04.5-base-arm64.tar.gz" && exit -1; }
 [ -d 'ubuntu-base-22.04.5-base-arm64' ] || mkdir ubuntu-base-22.04.5-base-arm64
@@ -35,11 +35,27 @@ sudo cp rootfs/etc/apt/sources.list.bak rootfs/etc/apt/sources.list
 sudo sed -i '1a 127.0.0.1       m5stack-LLM' rootfs/etc/hosts
 sudo rm rootfs/var/deb-archives -rf
 
-sudo rm axera-image/rootfs_sparse.ext4
+sudo cp axera-image/rootfs_sparse.ext4 rootfs_sparse.ext4
 
+sudo simg2img rootfs_sparse.ext4 rootfs_.ext4
+
+mkdir build_rootfs
+sudo mount rootfs_.ext4 build_rootfs
+sudo cp build_rootfs/lib/modules rootfs/lib/ -a
+sudo cp build_rootfs/lib/firmware/* rootfs/lib/firmware/ -a
+
+sudo cp build_rootfs/sbin/devmem rootfs/usr/sbin/ -a
+
+
+
+
+sudo umount build_rootfs
+sudo rm build_rootfs rootfs_sparse.ext4 rootfs_.ext4 -rf
 
 sudo tar zxf ../../board/m5stack/soc.tar.gz -C rootfs/soc
 [ -f "../../board/m5stack/opt.tar.gz" ] && sudo tar zxf ../../board/m5stack/opt.tar.gz -C rootfs/opt
+
+sudo find rootfs -name ".empty" -exec rm {} -f \;
 
 sudo ../bin/make_ext4fs -l ${EXT_ROOTFS_SIZE} -s axera-image/rootfs_sparse.ext4 ubuntu-base-22.04.5-base-arm64/
 

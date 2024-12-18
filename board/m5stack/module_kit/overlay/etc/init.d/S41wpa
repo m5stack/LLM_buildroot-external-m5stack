@@ -2,26 +2,14 @@
 
 MODULES="wpa"
 
-check_and_restart() {
-    while true; do
-        if ! ps aux | grep "wpa_supplicant -i wlan0" | grep -v grep > /dev/null; then
-            /usr/sbin/wpa_supplicant -i wlan0 -B -c /etc/wpa_supplicant.conf
-        fi
-        sleep 3
-    done
-}
-
-
-
 start() {
 	printf 'Starting %s:' "$MODULES"
-	check_and_restart &> /dev/null &
+	sh -c  'sleep 5 ; /usr/sbin/wpa_supplicant -i wlan0 -B -c /etc/wpa_supplicant.conf' &> /dev/null &
 	echo ' OK'
 }
 
 stop() {
 	printf 'Stopping %s: ' "$MODULES"
-	killall check_and_restart
 	killall wpa_supplicant
 	echo 'OK'
 }

@@ -1,0 +1,10 @@
+[Unit]
+Description=start espC6 wifi
+Before=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/m5stack/bin/S39eth_mac start
+
+[Install]
+WantedBy=multi-user.target
