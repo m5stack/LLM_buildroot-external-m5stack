@@ -4,5 +4,4 @@
 # at boot time, one per line. Lines beginning with "#" are ignored.
 
 bluetooth
-mac80211
 aw99703_bl

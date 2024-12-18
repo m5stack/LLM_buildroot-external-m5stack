@@ -41,6 +41,28 @@ sudo tar zxf ../../board/m5stack/soc.tar.gz -C rootfs/soc
 [ -f "../../board/m5stack/opt.tar.gz" ] && sudo tar zxf ../../board/m5stack/opt.tar.gz -C rootfs/opt
 
 
+
+sudo cp ../../board/m5stack/overlay/usr/* rootfs/usr/ -a
+sudo cp ../../board/m5stack/module_LLM/overlay/usr/* rootfs/usr/ -a
+
+sudo cp axera-image/rootfs_sparse.ext4 rootfs_sparse.ext4
+sudo simg2img rootfs_sparse.ext4 rootfs_.ext4
+mkdir build_rootfs
+sudo mount rootfs_.ext4 build_rootfs
+
+
+
+sudo cp build_rootfs/lib/modules rootfs/lib/ -a
+sudo cp build_rootfs/lib/firmware/* rootfs/lib/firmware/ -a
+sudo cp build_rootfs/sbin/devmem rootfs/usr/sbin/ -a
+
+
+
+sudo umount build_rootfs
+sudo rm build_rootfs rootfs_sparse.ext4 rootfs_.ext4 -rf
+
+
+
 sudo ../bin/make_ext4fs -l ${EXT_ROOTFS_SIZE} -s axera-image/rootfs_sparse.ext4 ubuntu-base-22.04.5-base-arm64/
 
 cd axera-image

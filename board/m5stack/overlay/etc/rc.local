@@ -1,6 +1,7 @@
 #!/bin/sh
-/usr/local/m5stack/startup-script.sh
 /soc/scripts/startup-script.sh
+/usr/local/m5stack/startup-script.sh
+
 
 sh -c ". /etc/profile ; /soc/scripts/usb-adb.sh start"
 

@@ -35,22 +35,26 @@ sudo cp rootfs/etc/apt/sources.list.bak rootfs/etc/apt/sources.list
 sudo sed -i '1a 127.0.0.1       m5stack-LLM' rootfs/etc/hosts
 sudo rm rootfs/var/deb-archives -rf
 
+
+sudo cp ../../board/m5stack/overlay/usr/* rootfs/usr/ -a
+
 sudo cp axera-image/rootfs_sparse.ext4 rootfs_sparse.ext4
-
 sudo simg2img rootfs_sparse.ext4 rootfs_.ext4
-
 mkdir build_rootfs
 sudo mount rootfs_.ext4 build_rootfs
+
+
+
 sudo cp build_rootfs/lib/modules rootfs/lib/ -a
 sudo cp build_rootfs/lib/firmware/* rootfs/lib/firmware/ -a
-
 sudo cp build_rootfs/sbin/devmem rootfs/usr/sbin/ -a
-
 
 
 
 sudo umount build_rootfs
 sudo rm build_rootfs rootfs_sparse.ext4 rootfs_.ext4 -rf
+
+
 
 sudo tar zxf ../../board/m5stack/soc.tar.gz -C rootfs/soc
 [ -f "../../board/m5stack/opt.tar.gz" ] && sudo tar zxf ../../board/m5stack/opt.tar.gz -C rootfs/opt
