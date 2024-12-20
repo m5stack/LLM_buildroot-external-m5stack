@@ -6,4 +6,4 @@
 sh -c ". /etc/profile ; /soc/scripts/usb-adb.sh start"
 
 
-
+exit 0

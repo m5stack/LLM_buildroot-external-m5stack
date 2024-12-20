@@ -2,11 +2,30 @@
 
 MODULES="espc6wifi"
 
+espc6_flash() {
+	/usr/sbin/m5stack_esp_flasher /lib/firmware/esphosted_c6/esphosted_ng_sdio.bin
+}
+
+load_module() 
+{
+	insmod /lib/modules/4.19.125/extra/esp32_sdio.ko
+}
+
+rest_espc6() {
+	/sbin/devmem 0x02304084 32 0x00060083 
+	/sbin/devmem 0x02304090 32 0x00060083 
+	/sbin/devmem 0x4801010 32 0x3 
+	/sbin/devmem 0x480100c 32 0x0 
+	sleep 0.05  
+	/sbin/devmem 0x480100c 32 0x3
+}
+
 start() {
 	printf 'Starting %s:' "$MODULES"
-	[ -f '/var/espc6wifi.config' ] || { /usr/sbin/m5stack_esp_flasher /lib/firmware/esphosted_c6/esphosted_fg_sdio.bin >> /dev/null 2>&1 ; touch /var/espc6wifi.config ; }
-	insmod /lib/modules/4.19.125/extra/esp32_sdio.ko
-	sh -c 'sleep 1 ; /sbin/devmem 0x02304084 32 0x00060083 ; /sbin/devmem 0x02304090 32 0x00060083 ; /sbin/devmem 0x4801010 32 0x3 ; /sbin/devmem 0x480100c 32 0x0 ; sleep 1 ; /sbin/devmem 0x480100c 32 0x3 ' >> /dev/null 2>&1 &
+	[ -f '/var/espc6wifi.config' ] || { espc6_flash ; touch /var/espc6wifi.config ; }
+	load_module
+	sleep 0.1
+	rest_espc6
 	echo ' OK'
 }
 
@@ -23,13 +42,13 @@ restart() {
 }
 
 case "$1" in
-	start|stop|restart)
+	start|stop|restart|espc6_flash|load_module|rest_espc6)
 		"$1";;
 	reload)
 		# Restart, since there is no true "reload" feature.
 		restart;;
 	*)
-		echo "Usage: $0 {start|stop|restart|reload}"
+		echo "Usage: $0 {start|stop|restart|reload|espc6_flash|load_module|rest_espc6}"
 		exit 1
 esac
 

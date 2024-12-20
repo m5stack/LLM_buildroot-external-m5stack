@@ -2,23 +2,56 @@
 
 MODULES="eth_mac"
 
-start() {
-	printf 'Starting %s:' "$MODULES"
-	sha256_hash=`/usr/bin/sha256sum /proc/ax_proc/uid`
-	hex_bytes=${sha256_hash:0:12}
-	prefix="6e:46:28"
-	mac1="$prefix:${hex_bytes:0:2}:${hex_bytes:2:2}:${hex_bytes:4:2}"
-	mac2="$prefix:${hex_bytes:6:2}:${hex_bytes:8:2}:${hex_bytes:10:2}"
-	mac3="$prefix:${hex_bytes:0:2}:${hex_bytes:2:2}:${hex_bytes:4:2}"
-	mac4="$prefix:${hex_bytes:6:2}:${hex_bytes:8:2}:${hex_bytes:10:2}"
-	ip link set dev eth0 address $mac1
+set_mac() {
+	iface="${1}"
+	enable_up=""
+	if ip link show $iface > /dev/null 2>&1 ; then
+		if ip link show $iface | grep -q "state UP" ; then
+			enable_up="en"
+			ip link set dev $iface down
+		fi
+	else
+		exit -1
+	fi
+    sha256_hash=$(cat /proc/ax_proc/uid | /usr/bin/sha256sum | awk '{print $1}')
+    hex_bytes=$(echo "$sha256_hash" | cut -c 1-12)
+    prefix="6e:46:28"
+	case "$iface" in
+		eth0)
+			mac="$prefix:$(echo "$hex_bytes" | cut -c 1-2):$(echo "$hex_bytes" | cut -c 3-4):$(echo "$hex_bytes" | cut -c 5-6)"
+			ip link set dev $iface address "${mac}"
+			;;
+		eth1)
+			mac="$prefix:$(echo "$hex_bytes" | cut -c 7-8):$(echo "$hex_bytes" | cut -c 9-10):$(echo "$hex_bytes" | cut -c 11-12)"
+			ip link set dev $iface address "${mac}"
+			;;
+		wlan0)
+			mac="$prefix:$(echo "$hex_bytes" | cut -c 1-2):$(echo "$hex_bytes" | cut -c 3-4):$(echo "$hex_bytes" | cut -c 5-6)"
+			ip link set dev $iface address "${mac}"
+			;;
+		wlan1)
+			mac="$prefix:$(echo "$hex_bytes" | cut -c 7-8):$(echo "$hex_bytes" | cut -c 9-10):$(echo "$hex_bytes" | cut -c 11-12)"
+			ip link set dev $iface address "${mac}"
+			;;
+		*)
+			echo "no have $iface";;
+	esac
+	if [ "$enable_up" = "en" ] ; then
+		ip link set dev $iface up
+	fi
+}
 
-	echo ' OK'
+start() {
+    printf 'Starting %s:' "$MODULES"
+	iface="${1}"
+	[ "$iface" = "" ] || iface="eth0"
+	set_mac $iface
+	ip link set dev $iface up
+    echo ' OK'
 }
 
 stop() {
 	printf 'Stopping %s: ' "$MODULES"
-
 	echo 'OK'
 }
 
@@ -29,13 +62,19 @@ restart() {
 }
 
 case "$1" in
-	start|stop|restart)
+	stop|restart)
 		"$1";;
 	reload)
 		# Restart, since there is no true "reload" feature.
 		restart;;
+	set_mac)
+		set_mac $2
+		;;	
+	start)
+		start $2
+		;;	
 	*)
-		echo "Usage: $0 {start|stop|restart|reload}"
+		echo "Usage: $0 {start|stop|restart|reload|set_mac}"
 		exit 1
 esac
 

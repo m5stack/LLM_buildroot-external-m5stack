@@ -1,6 +1,6 @@
 #!/bin/bash
-bash /soc/scripts/auto_load_all_drv.sh
-bash /usr/local/m5stack/startup-script.sh
 bash /soc/scripts/startup-script.sh
+bash /usr/local/m5stack/startup-script.sh
 
 bash -c ". /etc/profile ; /soc/scripts/usb-adb.sh start"
+exit 0

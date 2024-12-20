@@ -1,0 +1,16 @@
+#!/bin/sh
+#
+# ifdown hook script for resolvconf
+#
+# This file is part of the resolvconf package.
+#
+
+if [ ! "$IFACE" ]; then
+    exit 0
+fi
+
+if [ "$IFACE" = "eth0" ] || [ "$IFACE" = "eth1" ] ; then
+    ip addr flush dev "$IFACE"
+fi
+
+

@@ -1,0 +1,4 @@
+#!/bin/sh
+[ "$IFACE" = "eth0" ] || exit 0
+/usr/local/m5stack/bin/S39eth_mac set_mac eth0
+exit 0
