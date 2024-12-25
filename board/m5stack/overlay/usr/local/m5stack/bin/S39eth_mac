@@ -45,6 +45,8 @@ start() {
     printf 'Starting %s:' "$MODULES"
 	iface="${1}"
 	[ "$iface" = "" ] || iface="eth0"
+    [ "$iface" = "up" ] || iface="eth0"
+    [ "$iface" = "down" ] || iface="eth0"
 	set_mac $iface
 	ip link set dev $iface up
     echo ' OK'
