@@ -29,7 +29,7 @@ sudo chroot ubuntu-base-22.04.5-base-arm64/ /bin/bash -c 'echo "root:root" | chp
 sudo rm rootfs/etc/apt/sources.list && sudo touch rootfs/etc/apt/sources.list
 
 sudo echo "deb [trusted=yes] file:/var/deb-archives ./" > rootfs/etc/apt/sources.list.d/local-repo.list
-sudo chroot rootfs/ /bin/bash -c 'apt update ; echo "tzdata tzdata/Areas select Asia" | debconf-set-selections ; echo "tzdata tzdata/Zones/Asia select Shanghai" | debconf-set-selections ; DEBIAN_FRONTEND=noninteractive apt install vim net-tools network-manager i2c-tools lrzsz kmod iputils-ping openssh-server ifplugd -y --option=Dpkg::Options::="--force-confnew"'
+sudo chroot rootfs/ /bin/bash -c 'apt update ; echo "tzdata tzdata/Areas select Asia" | debconf-set-selections ; echo "tzdata tzdata/Zones/Asia select Shanghai" | debconf-set-selections ; DEBIAN_FRONTEND=noninteractive apt install vim net-tools network-manager i2c-tools lrzsz kmod iputils-ping openssh-server ifplugd whiptail -y --option=Dpkg::Options::="--force-confnew"'
 sudo sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/g' rootfs/etc/ssh/sshd_config
 sudo rm rootfs/etc/apt/sources.list.d/local-repo.list
 sudo cp rootfs/etc/apt/sources.list.bak rootfs/etc/apt/sources.list
