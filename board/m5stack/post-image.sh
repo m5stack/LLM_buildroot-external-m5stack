@@ -25,6 +25,7 @@ main()
 	cp ${BINARIES_DIR}/boot_signed.bin ${BINARIES_DIR}/../axera-image
 	cp ${BINARIES_DIR}/boot_signed.bin.1 ${BINARIES_DIR}/../axera-image
 	cp ${BINARIES_DIR}/rootfs_sparse.ext4 ${BINARIES_DIR}/../axera-image
+	cp ${BINARIES_DIR}/fdl2_signed.bin ${BINARIES_DIR}/../axera-image
 
 	cd ${BINARIES_DIR}/../axera-image
 	zip -r ../output.zip .

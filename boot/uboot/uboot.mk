@@ -5,6 +5,8 @@
 
 
 define MY_UBOOT_POST_INSTALL_IMAGES_HOOK
+	python3 $(SIGN_SCRIPT) -i $(BINARIES_DIR)/u-boot-dtb.bin \
+		-o $(BINARIES_DIR)/fdl2_signed.bin -pub $(PUB_KEY) -prv $(PRIV_KEY) $(SIGN_PARAMS)
 	$(BR2_EXTERNAL_M5STACK_PATH)/tools/bin/ax_gzip -9 $(BINARIES_DIR)/u-boot-dtb.bin
 	python3 $(SIGN_SCRIPT) -i $(BINARIES_DIR)/u-boot-dtb_axgzip.bin \
 		-o $(BINARIES_DIR)/u-boot_signed.bin -pub $(PUB_KEY) -prv $(PRIV_KEY) $(SIGN_PARAMS)
