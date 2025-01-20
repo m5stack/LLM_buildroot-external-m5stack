@@ -1,0 +1,1 @@
+ACTION=="add|remove", SUBSYSTEM=="block", KERNEL=="mmcblk[1-9]p[0-9]|sd[a-z][0-9]", RUN+="/usr/local/m5stack/block-mount.sh"

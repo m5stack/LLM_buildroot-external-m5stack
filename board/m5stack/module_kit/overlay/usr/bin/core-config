@@ -90,8 +90,8 @@ do_expand_rootfs() {
 }
 
 do_change_pass() {
-  whiptail --msgbox "You will now be asked to enter a new password for the debian user" 20 60 1
-  passwd debian &&
+  whiptail --msgbox "You will now be asked to enter a new password for the root user" 20 60 1
+  passwd root &&
   whiptail --msgbox "Password changed successfully" 20 60 1
 }
 
@@ -442,7 +442,7 @@ do_advanced_menu() {
 calc_wt_size
 while true; do
   FUN=$(whiptail --title "LLM Software Configuration Tool (core-config) $CORE_CONFIG_VERSION" --menu "Setup Options" $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT --cancel-button Finish --ok-button Select \
-    "1 Change User Password" "Change password for the default user (debian)" \
+    "1 Change User Password" "Change password for the default user (root)" \
     "2 Internationalisation Options" "Set up language and regional settings to match your location" \
     "3 Advanced Options" "Configure advanced settings" \
     3>&1 1>&2 2>&3)

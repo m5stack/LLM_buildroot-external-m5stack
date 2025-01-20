@@ -25,14 +25,55 @@ sudo cp --preserve=mode,timestamps -r ../overlay_ubuntu22_04_LITE/* rootfs
 
 sudo chroot ubuntu-base-22.04.5-base-arm64/ /bin/bash -c 'echo "root:root" | chpasswd'
 
-[ -f 'rootfs/etc/apt/sources.list.bak' ] || sudo cp rootfs/etc/apt/sources.list rootfs/etc/apt/sources.list.bak -a
-sudo rm rootfs/etc/apt/sources.list && sudo touch rootfs/etc/apt/sources.list
+# [ -f 'rootfs/etc/apt/sources.list.bak' ] || sudo cp rootfs/etc/apt/sources.list rootfs/etc/apt/sources.list.bak -a
+# sudo rm rootfs/etc/apt/sources.list && sudo touch rootfs/etc/apt/sources.list
 
-sudo echo "deb [trusted=yes] file:/var/deb-archives ./" > rootfs/etc/apt/sources.list.d/local-repo.list
-sudo chroot rootfs/ /bin/bash -c 'apt update ; echo "tzdata tzdata/Areas select Asia" | debconf-set-selections ; echo "tzdata tzdata/Zones/Asia select Shanghai" | debconf-set-selections ; DEBIAN_FRONTEND=noninteractive apt install vim net-tools network-manager i2c-tools lrzsz kmod iputils-ping openssh-server ifplugd whiptail -y --option=Dpkg::Options::="--force-confnew"'
+# sudo echo "deb [trusted=yes] file:/var/deb-archives ./" > rootfs/etc/apt/sources.list.d/local-repo.list
+sudo chroot rootfs/ /bin/bash -c 'apt update ; echo "tzdata tzdata/Areas select Asia" | debconf-set-selections ; echo "tzdata tzdata/Zones/Asia select Shanghai" | debconf-set-selections ; export DEBIAN_FRONTEND=noninteractive ; dpkg -i /var/deb-archives/*.deb --option=Dpkg::Options::="--force-confnew"'
+
+TARGET_ROOTFS_DIR=ubuntu-base-22.04.5-base-arm64
+#link sh to bash
+ln -sf /bin/bash $TARGET_ROOTFS_DIR/bin/sh
+ln -sf /usr/bin/busybox $TARGET_ROOTFS_DIR/usr/sbin/hwclock
+ln -sf /usr/bin/busybox $TARGET_ROOTFS_DIR/usr/sbin/devmem
+
+#modify for rtc ntp
+echo "*/1 *   * * *   root    /sbin/hwclock -w -f /dev/rtc0" >> $TARGET_ROOTFS_DIR/etc/crontab
+echo "*/1 *   * * *   root    sleep 60 && systemctl restart ntp" >> $TARGET_ROOTFS_DIR/etc/crontab
+
+#remove this file or mac address will be modified all same
+rm $TARGET_ROOTFS_DIR/usr/lib/udev/rules.d/80-net-setup-link.rules
+
+#modify dhclient timeout @baolin
+sed -i 's/timeout 300/timeout 5/g' $TARGET_ROOTFS_DIR/etc/dhcp/dhclient.conf
+sed -i 's/#retry 60/retry 3/g' $TARGET_ROOTFS_DIR/etc/dhcp/dhclient.conf
+
+#modify networking service
+sed -i '/TimeoutStartSec=/s/.*/TimeoutStartSec=10sec/' $TARGET_ROOTFS_DIR/usr/lib/systemd/system/networking.service
+
+#mv dev_ip_flush to directory
+#mv dev_ip_flush $TARGET_ROOTFS_DIR/etc/network/if-post-down.d/
+
+#modify "raise network interface fail"
+sed -i '/mystatedir statedir ifindex interface/s/^/#/' $TARGET_ROOTFS_DIR/etc/network/if-up.d/resolved
+sed -i '/mystatedir statedir ifindex interface/s/^/#/' $TARGET_ROOTFS_DIR/etc/network/if-down.d/resolved
+sed -i '/return/s/return/exit 0/' $TARGET_ROOTFS_DIR/etc/network/if-up.d/resolved
+sed -i '/return/s/return/exit 0/' $TARGET_ROOTFS_DIR/etc/network/if-down.d/resolved
+sed -i 's/DNS=DNS/DNS=\$DNS/g' $TARGET_ROOTFS_DIR/etc/network/if-up.d/resolved
+sed -i 's/DOMAINS=DOMAINS/DOMAINS=\$DOMAINS/g' $TARGET_ROOTFS_DIR/etc/network/if-up.d/resolved
+sed -i 's/DNS=DNS6/DNS=\$DNS6/g' $TARGET_ROOTFS_DIR/etc/network/if-up.d/resolved
+sed -i 's/DOMAINS=DOMAINS6/DOMAINS=\$DOMAINS6/g' $TARGET_ROOTFS_DIR/etc/network/if-up.d/resolved
+sed -i 's/"\$DNS"="\$NEW_DNS"/DNS="\$NEW_DNS"/g' $TARGET_ROOTFS_DIR/etc/network/if-up.d/resolved
+sed -i 's/"\$DOMAINS"="\$NEW_DOMAINS"/DOMAINS="\$NEW_DOMAINS"/g' $TARGET_ROOTFS_DIR/etc/network/if-up.d/resolved
+sed -i '/DNS DNS6 DOMAINS DOMAINS6 DEFAULT_ROUTE/s/^/#/' $TARGET_ROOTFS_DIR/etc/network/if-up.d/resolved
+
+sync
+
+
+
 sudo sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/g' rootfs/etc/ssh/sshd_config
-sudo rm rootfs/etc/apt/sources.list.d/local-repo.list
-sudo cp rootfs/etc/apt/sources.list.bak rootfs/etc/apt/sources.list
+# sudo rm rootfs/etc/apt/sources.list.d/local-repo.list
+# sudo cp rootfs/etc/apt/sources.list.bak rootfs/etc/apt/sources.list
 sudo sed -i '1a 127.0.0.1       m5stack-LLM' rootfs/etc/hosts
 sudo rm rootfs/var/deb-archives -rf
 # sudo rm rootfs/etc/modprobe.d/blacklist* -rf
@@ -77,50 +118,3 @@ popd
 echo "$image_name creat success!"
 
 
-
-
-
-
-
-
-# sudo losetup -P /dev/loop258 sdcard.img
-# sleep 1
-# [ -e "/dev/loop258p5" ] || { echo "not found /dev/loop258p5" && exit -1; }
-# sudo mount /dev/loop258p5 rootfs
-
-# mkdir -p rootfs_overlay ;sudo cp rootfs/boot rootfs_overlay/ -a
-# mkdir -p rootfs_overlay/usr/lib ;sudo cp rootfs/lib/modules rootfs_overlay/usr/lib/ -a
-# mkdir -p rootfs_overlay/usr/lib ;sudo cp rootfs/lib/firmware rootfs_overlay/usr/lib/ -a
-
-# mkdir -p rootfs_overlay/usr/local/m5stack/bin ;sudo cp rootfs/usr/bin/tiny* rootfs_overlay/usr/local/m5stack/bin/ -a
-# mkdir -p rootfs_overlay/usr/local/m5stack/bin ;sudo cp rootfs/usr/bin/fbv rootfs_overlay/usr/local/m5stack/bin/ -a
-
-# mkdir -p rootfs_overlay/usr/local/m5stack/lib ;sudo cp rootfs/usr/lib/libtinyalsa* rootfs_overlay/usr/local/m5stack/lib/ -a
-# mkdir -p rootfs_overlay/usr/local/m5stack/lib ;sudo cp rootfs/usr/lib/libpng16* rootfs_overlay/usr/local/m5stack/lib/ -a
-# mkdir -p rootfs_overlay/usr/local/m5stack/lib ;sudo cp rootfs/usr/lib/libjpeg* rootfs_overlay/usr/local/m5stack/lib/ -a
-# mkdir -p rootfs_overlay/usr/local/m5stack/lib ;sudo cp rootfs/usr/lib/libgif* rootfs_overlay/usr/local/m5stack/lib/ -a
-
-# sudo rm rootfs/* -rf
-# sudo tar xf ubuntu-base-22.04.5-base-arm64/debian-12.1-minimal-armhf-2023-08-22/armhf-rootfs-debian-bookworm.tar -C rootfs/
-
-# sudo cp --preserve=mode,timestamps -r rootfs_overlay/* rootfs/
-# sudo cp --preserve=mode,timestamps -r ../overlay_debian12/* rootfs/
-# sudo rm rootfs/etc/systemd/system/multi-user.target.wants/nginx.service
-# sudo rm rootfs/etc/systemd/system/multi-user.target.wants/networking.service
-# sudo rm rootfs/etc/systemd/system/network-online.target.wants/networking.service
-# sudo sed -i '1a 127.0.0.1       CoreMP135' rootfs/etc/hosts
-
-# sudo chroot rootfs/ /usr/bin/dpkg -i /var/gdisk_1.0.9-2.1_armhf.deb
-# sudo chroot rootfs/ /usr/bin/dpkg -i /var/network-manager_1.42.4-1_armhf.deb
-
-
-# sudo sync
-# sudo umount rootfs
-# sudo losetup -D /dev/loop258
-
-# date_str=`date +%Y%m%d`
-# image_name="M5_Module_LLM_ubuntu22_04_$date_str.img"
-# mv sdcard.img $image_name
-
-# popd
-# echo "$image_name creat success!"
