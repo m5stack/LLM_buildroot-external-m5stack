@@ -7,12 +7,13 @@ if [ -z "${EXT_ROOTFS_SIZE}" ]; then
     export EXT_ROOTFS_SIZE=30606884864
 fi
 
+[ -d 'build_Module_LLM_ubuntu22_04_mini' ] || mkdir -p build_Module_LLM_ubuntu22_04_mini/ubuntu-base-22.04.5-base-arm64
+sudo rm build_Module_LLM_ubuntu22_04_mini/axera-image -rf
+./creat_Module_LLM_buidlroot_image.sh
+sudo cp build_Module_LLM_buidlroot/buildroot/output/axera-image build_Module_LLM_ubuntu22_04_mini/ -a
+[ -d 'build_Module_LLM_ubuntu22_04_mini/axera-image' ] || { echo "not found axera-image" && exit -1; }
 
-[ -d 'build_AX630C_LITE_ubuntu22_04' ] || mkdir -p build_AX630C_LITE_ubuntu22_04/ubuntu-base-22.04.5-base-arm64
-./creat_AX630C_LITE_buidlroot_image.sh && sudo cp build_AX630C_LITE_buidlroot/buildroot/output/axera-image build_AX630C_LITE_ubuntu22_04/ -a
-[ -d 'build_AX630C_LITE_ubuntu22_04/axera-image' ] || { echo "not found axera-image" && exit -1; }
-
-pushd build_AX630C_LITE_ubuntu22_04
+pushd build_Module_LLM_ubuntu22_04_mini
 [ -f '../ubuntu-base-22.04.5-base-arm64.tar.gz' ] || { wget http://cdimage.ubuntu.com/ubuntu-base/releases/22.04/release/ubuntu-base-22.04.5-base-arm64.tar.gz ; mv ubuntu-base-22.04.5-base-arm64.tar.gz ../ubuntu-base-22.04.5-base-arm64.tar.gz ; }
 [ -f '../ubuntu-base-22.04.5-base-arm64.tar.gz' ] || { echo "not found ubuntu-base-22.04.5-base-arm64.tar.gz" && exit -1; }
 [ -d 'ubuntu-base-22.04.5-base-arm64' ] || mkdir ubuntu-base-22.04.5-base-arm64
@@ -20,10 +21,9 @@ tar -zxpf ../ubuntu-base-22.04.5-base-arm64.tar.gz -C ubuntu-base-22.04.5-base-a
 
 ln -s ubuntu-base-22.04.5-base-arm64 rootfs
 
-sudo cp --preserve=mode,timestamps -r ../overlay_ubuntu22_04/* rootfs
-sudo cp --preserve=mode,timestamps -r ../overlay_ubuntu22_04_LITE/* rootfs
-[ -d '../local_deb_package/install.sh' ] && sudo cp --preserve=mode,timestamps -r ../local_deb_package/* rootfs/var/deb-archives/
-[ -d '../local_pip_package/install.sh' ] && { sudo mkdir -p rootfs/var/pip-archives ; sudo cp --preserve=mode,timestamps -r ../local_pip_package/* rootfs/var/pip-archives/ ; }
+sudo cp --preserve=mode,timestamps -r ../overlay_ubuntu22_04/* rootfs/
+[ -f '../local_deb_package/install.sh' ] && sudo cp --preserve=mode,timestamps -r ../local_deb_package/* rootfs/var/deb-archives/
+[ -f '../local_pip_package/install.sh' ] && { sudo mkdir -p rootfs/var/pip-archives ; sudo cp --preserve=mode,timestamps -r ../local_pip_package/* rootfs/var/pip-archives/ ; }
 
 sudo chroot ubuntu-base-22.04.5-base-arm64/ /bin/bash -c 'echo "root:root" | chpasswd'
 
@@ -31,18 +31,21 @@ sudo chroot ubuntu-base-22.04.5-base-arm64/ /bin/bash -c 'echo "root:root" | chp
 sudo rm rootfs/etc/apt/sources.list && sudo touch rootfs/etc/apt/sources.list
 
 sudo echo "deb [trusted=yes] file:/var/deb-archives ./" > rootfs/etc/apt/sources.list.d/local-repo.list
-cat <<EOF > rootfs/var/install.sh
-apt update
-echo "tzdata tzdata/Areas select Asia" | debconf-set-selections ; 
-echo "tzdata tzdata/Zones/Asia select Shanghai" | debconf-set-selections ; 
-export DEBIAN_FRONTEND=noninteractive ; 
-apt install vim net-tools network-manager i2c-tools lrzsz kmod iputils-ping openssh-server ifplugd whiptail avahi-daemon evtest -y --option=Dpkg::Options::="--force-confnew"
-apt install bash-completion sudo ethtool resolvconf ifupdown isc-dhcp-server -y --option=Dpkg::Options::="--force-confold"
-apt install language-pack-en-base htop bc udev ssh rsyslog -y --option=Dpkg::Options::="--force-confold"
-apt install tee-supplicant inetutils-ping iperf3 -y --option=Dpkg::Options::="--force-confold"
-apt install python3-pip libgl1 -y
 
-[ -f "/var/pip-archives/install.sh" ] && /bin/bash /var/pip-archives/install.sh
+
+# sudo chroot rootfs/ /bin/bash -c 'apt update ; echo "tzdata tzdata/Areas select Asia" | debconf-set-selections ; echo "tzdata tzdata/Zones/Asia select Shanghai" | debconf-set-selections ; DEBIAN_FRONTEND=noninteractive apt install vim net-tools network-manager i2c-tools lrzsz kmod iputils-ping openssh-server ifplugd whiptail -y --option=Dpkg::Options::="--force-confnew"'
+
+cat <<EOF > rootfs/var/install.sh
+
+apt update
+echo "tzdata tzdata/Areas select Asia" | debconf-set-selections
+echo "tzdata tzdata/Zones/Asia select Shanghai" | debconf-set-selections
+export DEBIAN_FRONTEND=noninteractive 
+apt install vim net-tools network-manager i2c-tools lrzsz kmod iputils-ping openssh-server ifplugd whiptail avahi-daemon evtest -y --option=Dpkg::Options::="--force-confnew"
+apt install ethtool resolvconf ifupdown -y --option=Dpkg::Options::="--force-confold"
+apt install udev ssh rsyslog -y --option=Dpkg::Options::="--force-confold"
+apt install tee-supplicant inetutils-ping iperf3 -y --option=Dpkg::Options::="--force-confold"
+
 [ -f "/var/deb-archives/install.sh" ] && /bin/bash /var/deb-archives/install.sh 
 EOF
 
@@ -94,7 +97,7 @@ sudo rm rootfs/var/deb-archives -rf
 # sudo rm rootfs/etc/modprobe.d/blacklist* -rf
 
 sudo cp ../../board/m5stack/overlay/usr/* rootfs/usr/ -a
-sudo cp ../../board/m5stack/module_kit/overlay/usr/* rootfs/usr/ -a
+sudo cp ../../board/m5stack/module_LLM/overlay/usr/* rootfs/usr/ -a
 
 sudo cp axera-image/rootfs_sparse.ext4 rootfs_sparse.ext4
 sudo simg2img rootfs_sparse.ext4 rootfs_.ext4
@@ -127,7 +130,7 @@ sudo ../bin/make_ext4fs -l ${EXT_ROOTFS_SIZE} -s axera-image/rootfs_sparse.ext4 
 cd axera-image
 zip -r ../output.zip .
 cd ..
-mv output.zip M5_LLM_ubuntu22.04_$(date +%Y%m%d).axp
+mv output.zip M5_LLM_ubuntu22.04_$(date +%Y%m%d)_mini.axp
 
 sudo rm rootfs ubuntu-base-22.04.5-base-arm64 -rf
 

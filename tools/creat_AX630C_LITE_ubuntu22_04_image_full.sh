@@ -43,20 +43,15 @@ apt install language-pack-en-base htop bc udev ssh rsyslog -y --option=Dpkg::Opt
 apt install tee-supplicant inetutils-ping iperf3 -y --option=Dpkg::Options::="--force-confold"
 apt install python3-pip libgl1 -y
 
-cd /var/pip-archives
-pip install notebook numpy opencv-python matplotlib --no-index -f /var/pip-archives
-EOF
 
+[ -f "/var/pip-archives/install.sh" ] && /bin/bash /var/pip-archives/install.sh
+[ -f "/var/deb-archives/install.sh" ] && /bin/bash /var/deb-archives/install.sh 
+
+EOF
 
 sudo chroot rootfs/ /bin/bash /var/install.sh
 
-
-
 TARGET_ROOTFS_DIR=ubuntu-base-22.04.5-base-arm64
-#link sh to bash
-sudo ln -sf /bin/bash $TARGET_ROOTFS_DIR/bin/sh
-sudo ln -sf /usr/bin/busybox $TARGET_ROOTFS_DIR/usr/sbin/hwclock
-sudo ln -sf /usr/bin/busybox $TARGET_ROOTFS_DIR/usr/sbin/devmem
 
 #modify for rtc ntp
 sudo echo "*/1 *   * * *   root    /sbin/hwclock -w -f /dev/rtc0" >> $TARGET_ROOTFS_DIR/etc/crontab
@@ -112,6 +107,7 @@ sudo cp build_rootfs/lib/firmware/* rootfs/lib/firmware/ -a
 sudo rm rootfs/usr/bin/sh -f
 sudo cp build_rootfs/bin/busybox rootfs/usr/bin/ -a
 sudo cp build_rootfs/sbin/devmem rootfs/usr/sbin/ -a
+sudo cp build_rootfs/sbin/hwclock rootfs/usr/sbin/ -a
 sudo cp build_rootfs/bin/sh rootfs/usr/bin/ -a
 sudo cp build_rootfs/usr/lib/libcrypto.so.1.1 rootfs/usr/lib/ -a
 

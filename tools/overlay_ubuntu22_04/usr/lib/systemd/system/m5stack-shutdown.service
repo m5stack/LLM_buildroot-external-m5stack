@@ -1,0 +1,13 @@
+[Unit]
+Description=m5stack to run on shutdown
+DefaultDependencies=no
+Before=shutdown.target
+RefuseManualStart=true
+
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/m5stack/shutdown-script.sh
+
+[Install]
+WantedBy=shutdown.target
