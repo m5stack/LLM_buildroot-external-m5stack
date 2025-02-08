@@ -20,10 +20,10 @@ tar -zxpf ../ubuntu-base-22.04.5-base-arm64.tar.gz -C ubuntu-base-22.04.5-base-a
 
 ln -s ubuntu-base-22.04.5-base-arm64 rootfs
 
-sudo cp --preserve=mode,timestamps -r ../overlay_ubuntu22_04/* rootfs
-sudo cp --preserve=mode,timestamps -r ../overlay_ubuntu22_04_LITE/* rootfs
-[ -d '../local_deb_package/install.sh' ] && sudo cp --preserve=mode,timestamps -r ../local_deb_package/* rootfs/var/deb-archives/
-[ -d '../local_pip_package/install.sh' ] && { sudo mkdir -p rootfs/var/pip-archives ; sudo cp --preserve=mode,timestamps -r ../local_pip_package/* rootfs/var/pip-archives/ ; }
+sudo cp --preserve=mode,timestamps -rf ../overlay_ubuntu22_04/* rootfs/
+sudo cp --preserve=mode,timestamps -rf ../overlay_ubuntu22_04_LITE/* rootfs/
+[ -f '../local_deb_package/install.sh' ] && sudo cp --preserve=mode,timestamps -rf ../local_deb_package/* rootfs/var/deb-archives/
+[ -f '../local_pip_package/install.sh' ] && { sudo mkdir -p rootfs/var/pip-archives ; sudo cp --preserve=mode,timestamps -rf ../local_pip_package/* rootfs/var/pip-archives/ ; }
 
 sudo chroot ubuntu-base-22.04.5-base-arm64/ /bin/bash -c 'echo "root:root" | chpasswd'
 
@@ -42,13 +42,17 @@ apt install language-pack-en-base htop bc udev ssh rsyslog -y --option=Dpkg::Opt
 apt install tee-supplicant inetutils-ping iperf3 -y --option=Dpkg::Options::="--force-confold"
 apt install python3-pip libgl1 -y
 
-[ -f "/var/pip-archives/install.sh" ] && /bin/bash /var/pip-archives/install.sh
 [ -f "/var/deb-archives/install.sh" ] && /bin/bash /var/deb-archives/install.sh 
+[ -f "/var/pip-archives/install.sh" ] && /bin/bash /var/pip-archives/install.sh
 EOF
 
 
 sudo chroot rootfs/ /bin/bash /var/install.sh
 
+sudo cp ../../board/m5stack/overlay/usr/* rootfs/usr/ -a
+sudo cp ../../board/m5stack/module_kit/overlay/usr/* rootfs/usr/ -a
+sudo cp --preserve=mode,timestamps -rf ../overlay_ubuntu22_04/* rootfs/
+sudo cp --preserve=mode,timestamps -rf ../overlay_ubuntu22_04_LITE/* rootfs/
 
 TARGET_ROOTFS_DIR=ubuntu-base-22.04.5-base-arm64
 
@@ -85,16 +89,12 @@ sudo sed -i '/DNS DNS6 DOMAINS DOMAINS6 DEFAULT_ROUTE/s/^/#/' $TARGET_ROOTFS_DIR
 sync
 
 
-
 sudo sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/g' rootfs/etc/ssh/sshd_config
 sudo rm rootfs/etc/apt/sources.list.d/local-repo.list
 sudo cp rootfs/etc/apt/sources.list.bak rootfs/etc/apt/sources.list
-sudo sed -i '1a 127.0.0.1       m5stack-LLM' rootfs/etc/hosts
+
 sudo rm rootfs/var/deb-archives -rf
 # sudo rm rootfs/etc/modprobe.d/blacklist* -rf
-
-sudo cp ../../board/m5stack/overlay/usr/* rootfs/usr/ -a
-sudo cp ../../board/m5stack/module_kit/overlay/usr/* rootfs/usr/ -a
 
 sudo cp axera-image/rootfs_sparse.ext4 rootfs_sparse.ext4
 sudo simg2img rootfs_sparse.ext4 rootfs_.ext4
@@ -113,8 +113,6 @@ sudo cp build_rootfs/usr/lib/libcrypto.so.1.1 rootfs/usr/lib/ -a
 
 sudo umount build_rootfs
 sudo rm build_rootfs rootfs_sparse.ext4 rootfs_.ext4 -rf
-
-
 
 sudo tar zxf ../../board/m5stack/soc.tar.gz -C rootfs/soc
 [ -f "../../board/m5stack/opt.tar.gz" ] && sudo tar zxf ../../board/m5stack/opt.tar.gz -C rootfs/opt

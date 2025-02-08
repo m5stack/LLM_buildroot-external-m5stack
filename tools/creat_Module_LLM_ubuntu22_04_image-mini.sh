@@ -21,9 +21,9 @@ tar -zxpf ../ubuntu-base-22.04.5-base-arm64.tar.gz -C ubuntu-base-22.04.5-base-a
 
 ln -s ubuntu-base-22.04.5-base-arm64 rootfs
 
-sudo cp --preserve=mode,timestamps -r ../overlay_ubuntu22_04/* rootfs/
-[ -f '../local_deb_package/install.sh' ] && sudo cp --preserve=mode,timestamps -r ../local_deb_package/* rootfs/var/deb-archives/
-[ -f '../local_pip_package/install.sh' ] && { sudo mkdir -p rootfs/var/pip-archives ; sudo cp --preserve=mode,timestamps -r ../local_pip_package/* rootfs/var/pip-archives/ ; }
+sudo cp --preserve=mode,timestamps -rf ../overlay_ubuntu22_04/* rootfs/
+[ -f '../local_deb_package/install.sh' ] && sudo cp --preserve=mode,timestamps -rf ../local_deb_package/* rootfs/var/deb-archives/
+[ -f '../local_pip_package/install.sh' ] && { sudo mkdir -p rootfs/var/pip-archives ; sudo cp --preserve=mode,timestamps -rf ../local_pip_package/* rootfs/var/pip-archives/ ; }
 
 sudo chroot ubuntu-base-22.04.5-base-arm64/ /bin/bash -c 'echo "root:root" | chpasswd'
 
@@ -52,6 +52,9 @@ EOF
 
 sudo chroot rootfs/ /bin/bash /var/install.sh
 
+sudo cp ../../board/m5stack/overlay/usr/* rootfs/usr/ -a
+sudo cp ../../board/m5stack/module_LLM/overlay/usr/* rootfs/usr/ -a
+sudo cp --preserve=mode,timestamps -rf ../overlay_ubuntu22_04/* rootfs/
 
 TARGET_ROOTFS_DIR=ubuntu-base-22.04.5-base-arm64
 
@@ -92,12 +95,9 @@ sync
 sudo sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/g' rootfs/etc/ssh/sshd_config
 sudo rm rootfs/etc/apt/sources.list.d/local-repo.list
 sudo cp rootfs/etc/apt/sources.list.bak rootfs/etc/apt/sources.list
-sudo sed -i '1a 127.0.0.1       m5stack-LLM' rootfs/etc/hosts
 sudo rm rootfs/var/deb-archives -rf
 # sudo rm rootfs/etc/modprobe.d/blacklist* -rf
 
-sudo cp ../../board/m5stack/overlay/usr/* rootfs/usr/ -a
-sudo cp ../../board/m5stack/module_LLM/overlay/usr/* rootfs/usr/ -a
 
 sudo cp axera-image/rootfs_sparse.ext4 rootfs_sparse.ext4
 sudo simg2img rootfs_sparse.ext4 rootfs_.ext4
