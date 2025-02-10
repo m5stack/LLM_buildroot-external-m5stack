@@ -22,7 +22,7 @@ tar -zxpf ../ubuntu-base-22.04.5-base-arm64.tar.gz -C ubuntu-base-22.04.5-base-a
 ln -s ubuntu-base-22.04.5-base-arm64 rootfs
 
 sudo cp --preserve=mode,timestamps -rf ../overlay_ubuntu22_04/* rootfs/
-[ -f '../local_deb_package/install.sh' ] && sudo cp --preserve=mode,timestamps -rf ../local_deb_package/* rootfs/var/deb-archives/
+[ -f '../local_deb_package/install.sh' ] && { sudo mkdir -p rootfs/var/deb-archives ; sudo cp --preserve=mode,timestamps -rf ../local_deb_package/* rootfs/var/deb-archives/ ; } 
 [ -f '../local_pip_package/install.sh' ] && { sudo mkdir -p rootfs/var/pip-archives ; sudo cp --preserve=mode,timestamps -rf ../local_pip_package/* rootfs/var/pip-archives/ ; }
 
 sudo chroot ubuntu-base-22.04.5-base-arm64/ /bin/bash -c 'echo "root:root" | chpasswd'
@@ -41,7 +41,7 @@ apt update
 echo "tzdata tzdata/Areas select Asia" | debconf-set-selections
 echo "tzdata tzdata/Zones/Asia select Shanghai" | debconf-set-selections
 export DEBIAN_FRONTEND=noninteractive 
-apt install vim net-tools network-manager i2c-tools lrzsz kmod iputils-ping openssh-server ifplugd whiptail avahi-daemon evtest -y --option=Dpkg::Options::="--force-confnew"
+apt install vim net-tools network-manager i2c-tools lrzsz kmod iputils-ping openssh-server ifplugd whiptail avahi-daemon evtest usbutils -y --option=Dpkg::Options::="--force-confnew"
 apt install bash-completion sudo ethtool resolvconf ifupdown isc-dhcp-server -y --option=Dpkg::Options::="--force-confold"
 apt install language-pack-en-base htop bc udev ssh rsyslog -y --option=Dpkg::Options::="--force-confold"
 apt install tee-supplicant inetutils-ping iperf3 -y --option=Dpkg::Options::="--force-confold"
@@ -53,7 +53,7 @@ EOF
 
 
 sudo chroot rootfs/ /bin/bash /var/install.sh
-
+sudo rm rootfs/var/install.sh
 sudo cp ../../board/m5stack/overlay/usr/* rootfs/usr/ -a
 sudo cp ../../board/m5stack/module_LLM/overlay/usr/* rootfs/usr/ -a
 sudo cp --preserve=mode,timestamps -rf ../overlay_ubuntu22_04/* rootfs/
