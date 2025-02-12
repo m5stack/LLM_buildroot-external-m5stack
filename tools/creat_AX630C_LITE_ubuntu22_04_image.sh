@@ -48,6 +48,8 @@ EOF
 
 
 sudo chroot rootfs/ /bin/bash /var/install.sh
+[ -f "rootfs/var/deb-archives/install.sh" ] && sudo rm -rf rootfs/var/deb-archives
+[ -f "rootfs/var/pip-archives/install.sh" ] && sudo rm -rf rootfs/var/pip-archives
 sudo rm rootfs/var/install.sh
 sudo cp ../../board/m5stack/overlay/usr/* rootfs/usr/ -a
 sudo cp ../../board/m5stack/module_kit/overlay/usr/* rootfs/usr/ -a
