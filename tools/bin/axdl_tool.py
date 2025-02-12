@@ -4,7 +4,7 @@
 Filename: axdl_tool.py
 Description: python tool for flashing AXDL firmware.
 
-Author: Hanxian Dianjixz
+Author: Hanxiao Dianjixz
 Email: support@M5Stack.com
 Created Date: 2025-02-12
 Version: 1.0.1
