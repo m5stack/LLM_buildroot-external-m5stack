@@ -9,7 +9,7 @@ fi
 
 
 [ -d 'build_AX630C_LITE_ubuntu22_04' ] || mkdir -p build_AX630C_LITE_ubuntu22_04/ubuntu-base-22.04.5-base-arm64
-./creat_AX630C_LITE_buidlroot_image.sh && sudo cp build_AX630C_LITE_buidlroot/buildroot/output/axera-image build_AX630C_LITE_ubuntu22_04/ -a
+./creat_AX630C_LITE_buildroot_image.sh && sudo cp build_AX630C_LITE_buildroot/buildroot/output/axera-image build_AX630C_LITE_ubuntu22_04/ -a
 [ -d 'build_AX630C_LITE_ubuntu22_04/axera-image' ] || { echo "not found axera-image" && exit -1; }
 
 pushd build_AX630C_LITE_ubuntu22_04
