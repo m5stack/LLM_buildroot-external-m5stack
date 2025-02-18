@@ -3,13 +3,10 @@
 #
 # SPDX-License-Identifier: MIT
 
+export EXT_ROOTFS_SIZE=6442450944
 
 clone_buildroot() {
-    if [ -d '../buildroot' ] ; then
-        [ -d 'buildroot' ] || cp -r ../buildroot buildroot
-    else
-        [ -d 'buildroot' ] || git clone https://github.com/bootlin/buildroot.git -b st/2023.02.10
-    fi
+    [ -d 'buildroot' ] || git clone https://github.com/bootlin/buildroot.git -b st/2023.02.10
     [ -d 'buildroot' ] || { echo "not found buildroot" && exit -1; }
     pushd buildroot
     hostname=$(hostname)
@@ -24,7 +21,7 @@ clone_buildroot() {
 
 make_buildroot() {
     cd buildroot
-    make BR2_EXTERNAL=../../.. m5stack_ax630c_lite_4_19_defconfig
+    make BR2_EXTERNAL=../../.. m5stack_module_llm_4_19_defconfig
     [[ -v ROOTFS_SIZE ]] && sed -i 's/^\(BR2_TARGET_ROOTFS_EXT2_SIZE=\).*$/\1"'"${ROOTFS_SIZE}"'"/' .config
     make -j `nproc`
 }
@@ -33,8 +30,8 @@ sudo apt install debianutils sed make binutils build-essential gcc g++ bash patc
 
 fun_lists=("clone_buildroot" "make_buildroot")
 
-[ -d 'build_AX630C_LITE_buidlroot' ] || mkdir build_AX630C_LITE_buidlroot
-pushd build_AX630C_LITE_buidlroot
+[ -d 'build_Module_LLM_buildroot_image_4_8' ] || mkdir build_Module_LLM_buildroot_image_4_8
+pushd build_Module_LLM_buildroot_image_4_8
 for item in "${fun_lists[@]}"; do
     $item
     ret=$?

@@ -34,8 +34,8 @@ sudo apt install debianutils sed make binutils build-essential gcc g++ bash patc
 
 fun_lists=("clone_buildroot" "make_buildroot")
 
-[ -d 'build_Module_LLM_buidlroot' ] || mkdir build_Module_LLM_buidlroot
-pushd build_Module_LLM_buidlroot
+[ -d 'build_Module_LLM_buildroot' ] || mkdir build_Module_LLM_buildroot
+pushd build_Module_LLM_buildroot
 for item in "${fun_lists[@]}"; do
     $item
     ret=$?

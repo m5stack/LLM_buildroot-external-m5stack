@@ -9,8 +9,8 @@ fi
 
 [ -d 'build_Module_LLM_ubuntu22_04' ] || mkdir -p build_Module_LLM_ubuntu22_04/ubuntu-base-22.04.5-base-arm64
 sudo rm build_Module_LLM_ubuntu22_04/axera-image -rf
-./creat_Module_LLM_buidlroot_image.sh
-sudo cp build_Module_LLM_buidlroot/buildroot/output/axera-image build_Module_LLM_ubuntu22_04/ -a
+./creat_Module_LLM_buildroot_image.sh
+sudo cp build_Module_LLM_buildroot/buildroot/output/axera-image build_Module_LLM_ubuntu22_04/ -a
 [ -d 'build_Module_LLM_ubuntu22_04/axera-image' ] || { echo "not found axera-image" && exit -1; }
 
 pushd build_Module_LLM_ubuntu22_04
