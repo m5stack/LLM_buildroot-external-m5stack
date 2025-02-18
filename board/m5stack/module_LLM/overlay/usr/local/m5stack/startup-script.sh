@@ -1,7 +1,7 @@
 #!/bin/sh
 . /etc/profile
 [ -f '/etc/ld.so.conf.d/libaxengine.conf' ] || echo '/opt/lib' > /etc/ld.so.conf.d/libaxengine.conf
-/usr/local/m5stack/bin/ax_usb_adb_event.sh >> /dev/null 2>&1 &
+start-stop-daemon --start --quiet --background --make-pidfile --pidfile /tmp/ax_usb_adb_event.pid --exec /usr/local/m5stack/bin/ax_usb_adb_event.sh
 insmod /usr/lib/modules/4.19.125/kernel/drivers/leds/led-class.ko
 insmod /usr/lib/modules/4.19.125/kernel/drivers/leds/leds-lp55xx-common.ko
 insmod /usr/lib/modules/4.19.125/kernel/drivers/leds/leds-lp5562.ko

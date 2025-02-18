@@ -16,7 +16,7 @@ main()
 	rm ${BINARIES_DIR}/rootfs -rf
 
 	mkdir -p ${BINARIES_DIR}/../axera-image
-	tar zxf ${BR2_EXTERNAL_M5STACK_PATH}/board/m5stack/image_overlay.tar.gz -C ${BINARIES_DIR}/../axera-image
+	tar zxf ${BR2_EXTERNAL_M5STACK_PATH}/board/m5stack/V3.0.0_20241120230136_image_overlay.tar.gz -C ${BINARIES_DIR}/../axera-image
 
 	cp ${BINARIES_DIR}/u-boot_signed.bin ${BINARIES_DIR}/../axera-image
 	cp ${BINARIES_DIR}/u-boot_b_signed.bin ${BINARIES_DIR}/../axera-image
@@ -27,7 +27,7 @@ main()
 	cp ${BINARIES_DIR}/rootfs_sparse.ext4 ${BINARIES_DIR}/../axera-image
 	cp ${BINARIES_DIR}/fdl2_signed.bin ${BINARIES_DIR}/../axera-image
 	current_date=$(date +"%Y%m%d%H%M%S")
-	sed_cmd="s|V2.0.0_P7_20240513101106_20241120144606|V2.0.0_P7_20240513101106_${current_date}|g"
+	sed_cmd="s|V3.0.0_20241120230136_20250212121708|V3.0.0_20241120230136__${current_date}|g"
 	sed -i "${sed_cmd}" "${BINARIES_DIR}/../axera-image/AX630C_emmc_arm64_k419.xml"
 
 	cd ${BINARIES_DIR}/../axera-image
