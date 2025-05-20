@@ -18,7 +18,6 @@ clone_buildroot() {
         [ -d 'dl' ] || 7z x dl.7z -odl
         [ -d 'dl' ] || { echo "not found dl" && exit -1; }
     fi
-    [ -f '../../../board/m5stack/module_kit/image_support/opt.tar.gz' ] || wget https://github.com/m5stack/LLM_buildroot-external-m5stack/releases/download/v0.0.0/opt.tar.gz -O ../../../board/m5stack/module_kit/image_support/opt.tar.gz
     popd
 }
 

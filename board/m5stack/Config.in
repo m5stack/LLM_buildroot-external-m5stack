@@ -1,0 +1,60 @@
+choice
+	bool "m5stack board"
+	help
+	  Select which board name.
+
+
+config BR2_BOARD_M5STACK_MODULE_LLM
+	bool "m5stack module llm"
+
+config BR2_BOARD_M5STACK_LLM630_COMPUTE_KIT
+	bool "m5stack llm630 compute kit"
+
+config BR2_BOARD_M5STACK_AX650_BASE
+	bool "m5stack ax650 base"
+
+comment "support module llm, llm630 compute kit, ax650 base"
+
+endchoice # m5stack board
+
+
+config BR2_M5STACK_BSP_SUPPORT_OPT
+	string "opt.tar.gz url"
+	default ""
+	help
+	  Support for the OPT files required by the system.
+
+config BR2_M5STACK_BSP_SUPPORT_OPT_SHA256
+	string "opt.tar.gz sha256"
+	default ""
+	help
+	  Support for the OPT files sha256 required by the system.
+
+config BR2_M5STACK_BSP_SUPPORT_SOC
+	string "soc.tar.gz url"
+	default ""
+	help
+	  Support for the SOC files required by the system.
+
+config BR2_M5STACK_BSP_SUPPORT_SOC_SHA256
+	string "soc.tar.gz sha256"
+	default ""
+	help
+	  Support for the SOC files sha256 required by the system.
+
+config BR2_M5STACK_BSP_SUPPORT_IMAGE_OVERLAY
+	string "image_overlay.tar.gz url"
+	default ""
+	help
+	  Boot firmware required by AXP.
+
+config BR2_M5STACK_BSP_SUPPORT_IMAGE_OVERLAY_SHA256
+	string "image_overlay.tar.gz sha256"
+	default ""
+	help
+	  Boot firmware sha256 required by AXP.
+
+
+
+
+

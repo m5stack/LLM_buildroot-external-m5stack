@@ -9,33 +9,45 @@ start() {
 	
 
 	cat <<EOF > /tmp/user_btn_start.sh
-i2cset -y -f 1 0x43 0x0D 0x8
-enable_count=0
-last_led_state=0
-while true ; do
-	if [[ \$(( \$(i2cget -y -f 1 0x43 0x0f) & 0x8 )) -ne 8 ]]; then 
-		enable_count=\$((enable_count+1))
-		if [ \$enable_count -eq 12 ] ; then
-			echo 255 > /sys/class/leds/sys_led/brightness ; 
-			find /mnt -name m5stack_user_start.sh -exec start-stop-daemon --start --quiet --background --make-pidfile --pidfile /tmp/.UsrBtnStart.pid --exec /bin/bash -- {} \; -quit
+#!/bin/bash
+user_btn_select() {
+    i2cset -y -f 1 0x43 0x0D 0x8
+    enable_count=0
+    last_led_state=0
+    while true; do
+        key_gpio_reg=\$(i2cget -y -f 1 0x43 0x0f)
+        if [ "\$key_gpio_reg" != "" ]; then
+            key_gpio_val=\$((\$key_gpio_reg & 0x8))
 		else
-			if [ \$enable_count -lt 12 ] ; then
-				if [ \$last_led_state -eq 0 ] ; then
-					last_led_state=1
-					echo 0 > /sys/class/leds/sys_led/brightness ; 
-				else
-					last_led_state=0
-					echo 255 > /sys/class/leds/sys_led/brightness ; 
-				fi
-			fi
-		fi
-	else 
-		if [ \$enable_count -gt 0 ] ; then
-			echo 255 > /sys/class/leds/sys_led/brightness ;
-		fi
-		enable_count=0
-	fi 
-	sleep 0.5
+			continue
+        fi
+        if [[ \$key_gpio_val -ne 8 ]]; then
+            enable_count=\$((enable_count + 1))
+            if [ \$enable_count -eq 12 ]; then
+                echo 255 >/sys/class/leds/sys_led/brightness
+                find /mnt -name m5stack_user_start.sh -exec start-stop-daemon --start --quiet --background --make-pidfile --pidfile /tmp/.UsrBtnStart.pid --exec /bin/bash -- {} \; -quit
+            else
+                if [ \$enable_count -lt 12 ]; then
+                    if [ \$last_led_state -eq 0 ]; then
+                        last_led_state=1
+                        echo 0 >/sys/class/leds/sys_led/brightness
+                    else
+                        last_led_state=0
+                        echo 255 >/sys/class/leds/sys_led/brightness
+                    fi
+                fi
+            fi
+        else
+            if [ \$enable_count -gt 0 ]; then
+                echo 255 >/sys/class/leds/sys_led/brightness
+            fi
+            enable_count=0
+        fi
+        sleep 0.5
+    done
+}
+while true; do
+    user_btn_select
 done
 
 EOF

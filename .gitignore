@@ -1,3 +1,6 @@
 tools
 .vscode/settings.json
 **opt.tar.gz
+board/m5stack/module_kit/image_support
+board/m5stack/module_LLM/image_support
+

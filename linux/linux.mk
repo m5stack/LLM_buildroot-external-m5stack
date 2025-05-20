@@ -8,12 +8,12 @@
 
 
 define MY_LINUX_TARGET_FINALIZE_HOOK
-	$(BR2_EXTERNAL_M5STACK_PATH)/tools/bin/ax_gzip -9 $(BINARIES_DIR)/Image
-	$(BR2_EXTERNAL_M5STACK_PATH)/tools/bin/ax_gzip -9 $(BINARIES_DIR)/$(BR2_LINUX_KERNEL_INTREE_DTS_NAME).dtb
-	python3 $(SIGN_SCRIPT) -i $(BINARIES_DIR)/Image.axgzip \
-		-o $(BINARIES_DIR)/boot_signed.bin -pub $(PUB_KEY) -prv $(PRIV_KEY) $(SIGN_PARAMS)
-	python3 $(SIGN_SCRIPT) -i $(BINARIES_DIR)/$(BR2_LINUX_KERNEL_INTREE_DTS_NAME).dtb.axgzip \
-		-o $(BINARIES_DIR)/AX630C_emmc_arm64_k419_signed.dtb -pub $(PUB_KEY) -prv $(PRIV_KEY) $(SIGN_PARAMS)
+	if [[ "$(BINARIES_DIR)/Image.axgzip" -ot "$(BINARIES_DIR)/Image" ]] ; then $(BR2_EXTERNAL_M5STACK_PATH)/tools/bin/ax_gzip -9 $(BINARIES_DIR)/Image ;fi
+	if [[ "$(BINARIES_DIR)/$(BR2_LINUX_KERNEL_INTREE_DTS_NAME).dtb.axgzip" -ot "$(BINARIES_DIR)/$(BR2_LINUX_KERNEL_INTREE_DTS_NAME).dtb" ]] ; then $(BR2_EXTERNAL_M5STACK_PATH)/tools/bin/ax_gzip -9 $(BINARIES_DIR)/$(BR2_LINUX_KERNEL_INTREE_DTS_NAME).dtb ;fi
+	if [[ "$(BINARIES_DIR)/boot_signed.bin" -ot "$(BINARIES_DIR)/Image.axgzip" ]] ; then python3 $(SIGN_SCRIPT) -i $(BINARIES_DIR)/Image.axgzip \
+		-o $(BINARIES_DIR)/boot_signed.bin -pub $(PUB_KEY) -prv $(PRIV_KEY) $(SIGN_PARAMS) ;fi
+	if [[ "$(BINARIES_DIR)/AX630C_emmc_arm64_k419_signed.dtb" -ot "$(BINARIES_DIR)/$(BR2_LINUX_KERNEL_INTREE_DTS_NAME).dtb.axgzip" ]] ; then python3 $(SIGN_SCRIPT) -i $(BINARIES_DIR)/$(BR2_LINUX_KERNEL_INTREE_DTS_NAME).dtb.axgzip \
+		-o $(BINARIES_DIR)/AX630C_emmc_arm64_k419_signed.dtb -pub $(PUB_KEY) -prv $(PRIV_KEY) $(SIGN_PARAMS) ;fi
 	cp $(BINARIES_DIR)/boot_signed.bin $(BINARIES_DIR)/boot_signed.bin.1
 	cp $(BINARIES_DIR)/AX630C_emmc_arm64_k419_signed.dtb $(BINARIES_DIR)/AX630C_emmc_arm64_k419_signed.dtb.1
 endef
