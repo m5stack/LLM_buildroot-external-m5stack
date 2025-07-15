@@ -1,21 +1,9 @@
-choice
-	bool "m5stack board"
+
+config BR2_BOARD_M5STACK_NAME
+	string "m5stack board name"
+	default "AX630C_emmc_arm64_k419"
 	help
-	  Select which board name.
-
-
-config BR2_BOARD_M5STACK_MODULE_LLM
-	bool "m5stack module llm"
-
-config BR2_BOARD_M5STACK_LLM630_COMPUTE_KIT
-	bool "m5stack llm630 compute kit"
-
-config BR2_BOARD_M5STACK_AX650_BASE
-	bool "m5stack ax650 base"
-
-comment "support module llm, llm630 compute kit, ax650 base"
-
-endchoice # m5stack board
+	  AX630C_emmc_arm64_k419, AX650_emmc.
 
 
 config BR2_M5STACK_BSP_SUPPORT_OPT
