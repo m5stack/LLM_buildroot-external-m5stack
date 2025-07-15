@@ -11,6 +11,7 @@ work_dir=build_AX630C_LITE_ubuntu22_04
 ubuntu_rootfs_path="build_AX630C_LITE_ubuntu22_04_rootfs/AX630C_LITE_ubuntu22_04_rootfs.tar.gz"
 BUILDROOTFS_OUTPUT_PATH="../build_AX630C_LITE_buildroot/buildroot/output"
 
+[ -d "work_dir" ] || mkdir -p $work_dir
 
 ./creat_AX630C_LITE_buildroot_image.sh
 [ -f "$ubuntu_rootfs_path" ] || ./mk_AX630C_LITE_ubuntu_rootfs.sh

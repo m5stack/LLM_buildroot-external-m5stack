@@ -377,7 +377,12 @@ class AXDLTool:
         if project is None:
             logger.error("No <Project> in XML.")
             sys.exit(1)
-
+        # FDLLevel
+        fdl_level_elem = project.find("FDLLevel")
+        if fdl_level_elem is None:
+            logger.error("No <FDLLevel> in XML.")
+            sys.exit(1)
+        fdl_level = int(fdl_level_elem.text, 0)
         # Partitions
         partitions_elem = project.find("Partitions")
         if partitions_elem is None:
@@ -434,10 +439,10 @@ class AXDLTool:
                     base_addr = int(base_text)
 
             # catch EIP / FDL1 / FDL2 specifically
-            if img_id == "FDL1":
+            if img_id == "FDL1" or img_id == "FDL":
                 fdl1_info["file"] = fname
                 fdl1_info["base"] = base_addr
-            elif img_id == "FDL2":
+            elif img_id == "FDL2" :
                 fdl2_info["file"] = fname
                 fdl2_info["base"] = base_addr
             elif img_id == "EIP":
@@ -455,13 +460,15 @@ class AXDLTool:
                     "type": img_elem.findtext("Type", "").strip(),
                 }
                 full_img_list.append(one_img)
-
+        
         if not fdl1_info["file"] or fdl1_info["base"] is None:
             logger.error("FDL1 (file/base) not properly found in XML.")
             sys.exit(1)
-        if not fdl2_info["file"] or fdl2_info["base"] is None:
-            logger.error("FDL2 (file/base) not properly found in XML.")
-            sys.exit(1)
+        
+        if fdl_level == 2:
+            if not fdl2_info["file"] or fdl2_info["base"] is None:
+                logger.error("FDL2 (file/base) not properly found in XML.")
+                sys.exit(1)
 
         return {
             "fdl1": fdl1_info,
@@ -715,7 +722,7 @@ class AXDLTool:
 
                 # Now send the actual chunk
                 port.write(chunk)
-                resp = port.read(512, timeout=120000)
+                resp = port.read(512, timeout=240000)
                 parsed = self.parse_packet(resp)
                 if not (parsed and parsed[0] == BSL_REP_ACK):
                     logger.error(
@@ -852,11 +859,11 @@ def main():
             f"FDL1 file '{cfg['fdl1']['file']}' not found among extracted files."
         )
         sys.exit(1)
-    if not fdl2_path or not os.path.isfile(fdl2_path):
-        logger.error(
-            f"FDL2 file '{cfg['fdl2']['file']}' not found among extracted files."
-        )
-        sys.exit(1)
+    # if not fdl2_path or not os.path.isfile(fdl2_path):
+    #     logger.error(
+    #         f"FDL2 file '{cfg['fdl2']['file']}' not found among extracted files."
+    #     )
+    #     sys.exit(1)
 
     # 2) Open the USB port
     port = USBSerialPort(args.vid, args.pid, logger=logger)
@@ -881,7 +888,7 @@ def main():
         ):
             port.close()
             sys.exit(1)
-
+    
     # 4) Download FDL1
     if not AXDL.download_fdl(
         port, logger, fdl1_path, cfg["fdl1"]["base"], stage_name="FDL1"
@@ -897,13 +904,13 @@ def main():
     if not AXDL.cmd_connect(port, logger):
         port.close()
         sys.exit(1)
-
-    # 6) Download FDL2
-    if not AXDL.download_fdl(
-        port, logger, fdl2_path, cfg["fdl2"]["base"], stage_name="FDL2"
-    ):
-        port.close()
-        sys.exit(1)
+    if fdl2_path:
+        # 6) Download FDL2
+        if not AXDL.download_fdl(
+            port, logger, fdl2_path, cfg["fdl2"]["base"], stage_name="FDL2"
+        ):
+            port.close()
+            sys.exit(1)
 
     logger.info("Preparing to repartition & burn images...")
 
