@@ -32,7 +32,7 @@ sudo apt install debianutils sed make binutils build-essential gcc g++ bash patc
 
 fun_lists=("clone_buildroot" "make_buildroot")
 
-[ -d '$LLM_WORK_DIR' ] || mkdir $LLM_WORK_DIR
+[ -d "$LLM_WORK_DIR" ] || mkdir $LLM_WORK_DIR
 pushd $LLM_WORK_DIR
 for item in "${fun_lists[@]}"; do
     $item
